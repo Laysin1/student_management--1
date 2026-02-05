@@ -3,115 +3,106 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Schedule;
-use App\Models\SchoolClass; // <- import your class model
-use App\Models\User;        // <- import your teacher model
+use App\Models\SchoolClass;
+use App\Models\Teacher;
+use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // Get all classes
-        $classes = SchoolClass::all();
-
-        // Default selected class
-        $selectedClass = $request->class_id ?? $classes->first()->id ?? null;
-
-        // Get schedules for selected class
-        $schedules = Schedule::where('class_id', $selectedClass)->get();
-
-        $timeSlots = ['7:00-8:00', '8:00-9:00', '9:00-10:00', '10:00-11:00', '1:00-2:00', '2:00-3:00', '3:00-4:00'];
-        $days = ['Mon','Tue','Wed','Thu','Fri','Sat'];
-
-        $scheduleData = [];
-        foreach ($timeSlots as $slot) {
-            foreach ($days as $day) {
-                $schedule = $schedules->where('day', $day)
-                                      ->where('time_slot', $slot)
-                                      ->first();
-                // Show subject with teacher if exists
-                $scheduleData[$slot][$day] = $schedule ? $schedule->subject.' ('.$schedule->teacher->name.')' : '';
-            }
-        }
-
-        return view('admin.schedules.index', compact('scheduleData', 'timeSlots', 'days', 'classes', 'selectedClass'));
+        $schedules = Schedule::with(['class','teacher'])->orderByDesc('id')->paginate(15);
+        return view('admin.schedules.index', compact('schedules'));
     }
 
     public function create()
     {
-        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        $timeSlots = ['7:00-8:00','8:00-9:00','9:00-10:00','10:00-11:00','1:00-2:00','2:00-3:00','3:00-4:00'];
-        $subjects = ['MTH', 'KH', 'P', 'C', 'H', 'I', 'G', 'ENG', 'ES', 'B', 'M'];
-        $classes = SchoolClass::all();
-        $teachers = User::where('role', 'teacher')->get(); // assuming 'role' column
-
-        return view('admin.schedules.create', compact('days', 'timeSlots', 'subjects', 'classes', 'teachers'));
+        $classes = SchoolClass::orderBy('grade_level')->get();
+        $teachers = Teacher::with('subject')->orderBy('first_name')->get();
+        return view('admin.schedules.create', compact('classes','teachers'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'day' => 'required|in:Mon,Tue,Wed,Thu,Fri,Sat',
-            'time_slot' => 'required|string',
-            'subject' => 'required|string',
-            'class_id' => 'required|exists:school_classes,id',
-            'teacher_id' => 'required|exists:users,id',
+        $validated = $request->validate([
+            'type' => 'required|in:class,teacher',
+            'class_id' => 'required_if:type,class|nullable|exists:school_classes,id',
+            'teacher_id' => 'required_if:type,teacher|nullable|exists:teachers,id',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:4096',
         ]);
 
-        $existingSchedule = Schedule::where('day', $request->day)
-                                    ->where('time_slot', $request->time_slot)
-                                    ->where('class_id', $request->class_id)
-                                    ->first();
+        try {
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('schedules', 'public');
+            }
 
-        if ($existingSchedule) {
-            return redirect()->back()->with('error', 'Schedule already exists for this time slot!');
+            if ($validated['type'] === 'class') {
+                \App\Models\Schedule::create([
+                    'class_id' => $validated['class_id'],
+                    'photo_path' => $photoPath,
+                ]);
+            } else {
+                \App\Models\Schedule::create([
+                    'teacher_id' => $validated['teacher_id'],
+                    'photo_path' => $photoPath,
+                ]);
+            }
+
+            return redirect()->route('schedules.index')->with('success', 'Schedule uploaded successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to upload schedule: ' . $e->getMessage()])->withInput();
         }
+    }
 
-        Schedule::create($request->all());
-
-        return redirect()->route('schedules.index')->with('success', 'Schedule created successfully!');
+    public function show(\App\Models\Schedule $schedule)
+    {
+        $schedule->load(['teacher','class']);
+        return view('admin.schedules.show', compact('schedule'));
     }
 
     public function edit(Schedule $schedule)
     {
-        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        $timeSlots = ['7:00-8:00','8:00-9:00','9:00-10:00','10:00-11:00','1:00-2:00','2:00-3:00','3:00-4:00'];
-        $subjects = ['MTH', 'KH', 'P', 'C', 'H', 'I', 'G', 'ENG', 'ES', 'B', 'M'];
-        $classes = SchoolClass::all();
-        $teachers = User::where('role', 'teacher')->get();
-
-        return view('admin.schedules.edit', compact('schedule','days','timeSlots','subjects','classes','teachers'));
+        $classes = SchoolClass::orderBy('grade_level')->get();
+        $teachers = Teacher::with('subject')->orderBy('first_name')->get();
+        return view('admin.schedules.edit', compact('schedule','classes','teachers'));
     }
 
-    public function update(Request $request, Schedule $schedule)
+    public function update(Request $r, Schedule $schedule)
     {
-        $request->validate([
-            'day' => 'required|in:Mon,Tue,Wed,Thu,Fri,Sat',
-            'time_slot' => 'required|string',
-            'subject' => 'required|string',
-            'class_id' => 'required|exists:school_classes,id',
-            'teacher_id' => 'required|exists:users,id',
+        $data = $r->validate([
+            'title'      => 'nullable|string|max:150',
+            'type'       => 'required|in:class,teacher',
+            'class_id'   => 'nullable|exists:school_classes,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
+            'photo'      => 'nullable|image|max:4096',
         ]);
 
-        $existingSchedule = Schedule::where('day', $request->day)
-                                    ->where('time_slot', $request->time_slot)
-                                    ->where('class_id', $request->class_id)
-                                    ->where('id', '!=', $schedule->id)
-                                    ->first();
-
-        if ($existingSchedule) {
-            return redirect()->back()->with('error', 'Schedule already exists for this time slot!');
+        if ($data['type'] === 'class' && empty($data['class_id'])) {
+            return back()->withErrors(['class_id' => 'Class is required for class schedule'])->withInput();
+        }
+        if ($data['type'] === 'teacher' && empty($data['teacher_id'])) {
+            return back()->withErrors(['teacher_id' => 'Teacher is required for teacher schedule'])->withInput();
         }
 
-        $schedule->update($request->all());
+        $schedule->title = $data['title'] ?? null;
+        $schedule->type = $data['type'];
+        $schedule->class_id = $data['type'] === 'class' ? ($data['class_id'] ?? null) : null;
+        $schedule->teacher_id = $data['type'] === 'teacher' ? ($data['teacher_id'] ?? null) : null;
 
-        return redirect()->route('schedules.index')->with('success', 'Schedule updated successfully!');
+        if ($r->hasFile('photo')) {
+            $schedule->photo_path = $r->file('photo')->store('schedule-photos', 'public');
+        }
+
+        $schedule->save();
+
+        return redirect()->route('schedules.index')->with('success','Schedule updated.');
     }
 
     public function destroy(Schedule $schedule)
     {
         $schedule->delete();
-        return redirect()->route('schedules.index')->with('success', 'Schedule deleted successfully!');
+        return redirect()->route('schedules.index')->with('success','Schedule deleted.');
     }
 }

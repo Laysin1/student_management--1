@@ -3,52 +3,61 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
-    // List all subjects
     public function index()
     {
-        return view('admin.subjects.index');
+        $subjects = Subject::orderBy('name')->paginate(15);
+        return view('admin.subjects.index', compact('subjects'));
     }
 
-    // Show form to add subject
     public function create()
     {
         return view('admin.subjects.create');
     }
 
-    // Store subject
     public function store(Request $request)
     {
-        // Validation + save logic
+        $data = $request->validate([
+            'name'        => 'required|string|max:100|unique:subjects,name',
+            'code'        => 'nullable|string|max:20|unique:subjects,code',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        Subject::create($data);
+
         return redirect()->route('subjects.index')->with('success', 'Subject created!');
     }
 
-    // Show specific subject
-    public function show($id)
+    public function show(Subject $subject)
     {
-        return view('admin.subjects.show', compact('id'));
+        return view('admin.subjects.show', compact('subject'));
     }
 
-    // Edit subject
-    public function edit($id)
+    public function edit(Subject $subject)
     {
-        return view('admin.subjects.edit', compact('id'));
+        return view('admin.subjects.edit', compact('subject'));
     }
 
-    // Update subject
-    public function update(Request $request, $id)
+    public function update(Request $request, Subject $subject)
     {
-        // Update logic
+        $data = $request->validate([
+            'name'        => 'required|string|max:100|unique:subjects,name,' . $subject->id,
+            'code'        => 'nullable|string|max:20|unique:subjects,code,' . $subject->id,
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $subject->update($data);
+
         return redirect()->route('subjects.index')->with('success', 'Subject updated!');
     }
 
-    // Delete subject
-    public function destroy($id)
+    public function destroy(Subject $subject)
     {
-        // Delete logic
+        $subject->delete();
         return redirect()->route('subjects.index')->with('success', 'Subject deleted!');
     }
 }

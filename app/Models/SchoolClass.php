@@ -2,21 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SchoolClass extends Model
 {
-    use HasFactory;
+    protected $fillable = ['name', 'grade_level'];
 
-    // Mass assignable fields
-    protected $fillable = [
-        'name', // e.g., "Grade 1", "Grade 2"
-    ];
+    public function students()
+    {
+        return $this->hasMany(\App\Models\Student::class, 'class_id');
+    }
 
-    // Relationship with schedules
+    public function teacher()
+    {
+        return $this->belongsTo(\App\Models\Teacher::class, 'teacher_id');
+    }
+
     public function schedules()
     {
-        return $this->hasMany(Schedule::class, 'class_id');
+        return $this->hasMany(\App\Models\Schedule::class, 'class_id');
     }
 }

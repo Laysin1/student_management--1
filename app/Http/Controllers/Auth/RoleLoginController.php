@@ -8,105 +8,79 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleLoginController extends Controller
 {
-    /**
-     * Show login form for Admin
-     */
+    /** Show login form for Admin */
     public function showAdminLogin()
     {
         return view('auth.login-admin');
     }
 
-    /**
-     * Show login form for Teacher
-     */
+    /** Show login form for Teacher */
     public function showTeacherLogin()
     {
         return view('auth.login-teacher');
     }
 
-    /**
-     * Show login form for Student
-     */
+    /** Show login form for Student */
     public function showStudentLogin()
     {
         return view('auth.login-student');
     }
 
-    /**
-     * Show login form for Parent
-     */
+    /** Show login form for Parent */
     public function showParentLogin()
     {
         return view('auth.login-parent');
     }
 
-    /**
-     * Admin login
-     */
-    public function adminLogin(Request $request)
+    /** Handle login for any role */
+    private function loginRole(Request $request, $role, $redirectRoute)
     {
         $credentials = $request->only('email', 'password');
-        $credentials['role'] = 'admin';
+        $credentials['role'] = $role;
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('admin.dashboard');
+            return redirect()->route($redirectRoute);
         }
 
         return back()->withErrors(['email' => 'Invalid credentials']);
     }
 
-    /**
-     * Teacher login
-     */
+    /** Admin login */
+   public function adminLogin(Request $request)
+        {
+            $credentials = $request->only('email', 'password');
+            $credentials['role'] = 'admin';
+
+            if (Auth::attempt($credentials)) {
+                $request->session()->regenerate();
+                return redirect()->route('dashboard.admin'); // <-- goes to admin homepage
+            }
+
+            return back()->withErrors(['email' => 'Invalid credentials']);
+        }
+
+
+
+    /** Teacher login */
     public function teacherLogin(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        $credentials['role'] = 'teacher';
-
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('teacher.dashboard');
-        }
-
-        return back()->withErrors(['email' => 'Invalid credentials']);
+        return $this->loginRole($request, 'teacher', 'dashboard.teacher');
     }
 
-    /**
-     * Student login
-     */
+    /** Student login */
     public function studentLogin(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        $credentials['role'] = 'student';
-
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('student.dashboard');
-        }
-
-        return back()->withErrors(['email' => 'Invalid credentials']);
+        return $this->loginRole($request, 'student', 'dashboard.student');
     }
 
-    /**
-     * Parent login
-     */
+    /** Parent login */
     public function parentLogin(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        $credentials['role'] = 'parent';
-
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('parent.dashboard');
-        }
-
-        return back()->withErrors(['email' => 'Invalid credentials']);
+        return $this->loginRole($request, 'parent', 'dashboard.parent');
     }
 
-    /**
-     * Logout for all roles
-     */
+    /** Logout for all roles */
     public function logout(Request $request)
     {
         Auth::logout();

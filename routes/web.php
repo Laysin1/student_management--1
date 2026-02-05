@@ -1,106 +1,122 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Auth\RoleLoginController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\AnnouncementController;
+use Illuminate\Support\Facades\Auth;
+
+use App\Http\Controllers\Auth\RoleLoginController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ScheduleController;
-use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
+use App\Http\Controllers\Teacher\StudentController as TeacherStudentController;
+use App\Http\Controllers\Teacher\ClassController as TeacherClassController;
+use App\Http\Controllers\Teacher\ScoreController as TeacherScoreController;
+use App\Http\Controllers\Teacher\SettingController as TeacherSettingController;
+use App\Http\Controllers\Teacher\ScheduleController as TeacherScheduleController;
+use App\Http\Controllers\Admin\SettingController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Role Selector (Public)
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application.
-| These routes are loaded by the RouteServiceProvider within a group
-| which contains the "web" middleware group.
-|
 */
+Route::get('/', fn() => view('role-selector'))->name('role.selector');
 
-// ---------------------------------------------------------
-// 🌐 Welcome / Role Selector Page
-// ---------------------------------------------------------
-Route::get('/', function () {
-    return view('role-selector');
-})->name('role.selector');
-
-// ---------------------------------------------------------
-// 🔐 Role-Based Login Pages
-// ---------------------------------------------------------
+/*
+|--------------------------------------------------------------------------
+| Login Routes (Public)
+|--------------------------------------------------------------------------
+*/
 Route::get('/login/admin', [RoleLoginController::class, 'showAdminLogin'])->name('login.admin');
 Route::get('/login/teacher', [RoleLoginController::class, 'showTeacherLogin'])->name('login.teacher');
 Route::get('/login/student', [RoleLoginController::class, 'showStudentLogin'])->name('login.student');
 Route::get('/login/parent', [RoleLoginController::class, 'showParentLogin'])->name('login.parent');
-
-// ---------------------------------------------------------
-// 🚀 Role-Based Login Submit Routes
-// ---------------------------------------------------------
 Route::post('/login/admin', [RoleLoginController::class, 'adminLogin'])->name('login.admin.submit');
 Route::post('/login/teacher', [RoleLoginController::class, 'teacherLogin'])->name('login.teacher.submit');
 Route::post('/login/student', [RoleLoginController::class, 'studentLogin'])->name('login.student.submit');
 Route::post('/login/parent', [RoleLoginController::class, 'parentLogin'])->name('login.parent.submit');
 
-// ---------------------------------------------------------
-// 📊 Role-Based Dashboards (Protected by Auth Middleware)
-// ---------------------------------------------------------
-Route::middleware(['auth', 'verified'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes (All Roles)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
 
-    // -------------------------
-    // 🧭 ADMIN DASHBOARD
-    // -------------------------
-    Route::get('/admin/dashboard', function () {
-        return view('dashboards.admin');
-    })->name('admin.dashboard');
+    // Dashboard role redirect
+    Route::get('/dashboard', function () {
+        switch (Auth::user()->role) {
+            case 'admin':   return redirect()->route('dashboard.admin');
+            case 'teacher': return redirect()->route('dashboard.teacher');
+            case 'student': return redirect()->route('dashboard.student');
+            case 'parent':  return redirect()->route('dashboard.parent');
+            default:
+                Auth::logout();
+                return redirect()->route('role.selector');
+        }
+    })->name('dashboard');
 
-    // -------------------------
-    // 🧭 TEACHER DASHBOARD
-    // -------------------------
-    Route::get('/teacher/dashboard', function () {
-        return view('dashboards.teacher');
-    })->name('teacher.dashboard');
+    // Dashboard pages
+    Route::get('/dashboard/admin', [DashboardController::class, 'index'])->name('dashboard.admin');
+    Route::get('/dashboard/teacher', [TeacherDashboardController::class, 'teacherHome'])->name('dashboard.teacher');
+    Route::get('/dashboard/student', fn() => view('dashboards.student'))->name('dashboard.student');
+    Route::get('/dashboard/parent', fn() => view('dashboards.parent'))->name('dashboard.parent');
 
-    // -------------------------
-    // 🧭 STUDENT DASHBOARD
-    // -------------------------
-    Route::get('/student/dashboard', function () {
-        return view('dashboards.student');
-    })->name('student.dashboard');
-
-    // -------------------------
-    // 🧭 PARENT DASHBOARD
-    // -------------------------
-    Route::get('/parent/dashboard', function () {
-        return view('dashboards.parent');
-    })->name('parent.dashboard');
-
-    // -------------------------
-    // 🛠️ ADMIN CRUD ROUTES
-    // -------------------------
-    Route::resource('admins', AdminController::class); // manage admins
-    Route::resource('users', UserController::class); // manage teachers, students, parents
-    Route::resource('announcements', AnnouncementController::class);
-    Route::resource('schedules', ScheduleController::class);
-    Route::resource('subjects', SubjectController::class);
-
-    // -----------------------------------------------------
-    // 👤 Profile Management (for all authenticated users)
-    // -----------------------------------------------------
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-// ---------------------------------------------------------
-// 🏠 Default Dashboard Redirect
-// ---------------------------------------------------------
-Route::get('/dashboard', function () {
-    return redirect()->route('role.selector');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    // Logout
+    Route::post('/logout', [RoleLoginController::class, 'logout'])->name('logout');
 
-// ---------------------------------------------------------
-// 🔧 Include Laravel Auth Routes (register, login, reset, etc.)
-// ---------------------------------------------------------
+    // Admin CRUD
+    Route::prefix('admin')->group(function () {
+
+        // Teachers - custom routes BEFORE resource
+        Route::get('teachers/filter', [TeacherController::class, 'filter'])->name('teachers.filter');
+        Route::resource('teachers', TeacherController::class);
+
+        // Classes - custom routes BEFORE resource
+        Route::get('classes/delete-list', [ClassController::class, 'deleteList'])->name('classes.delete-list');
+        Route::resource('classes', ClassController::class);
+
+        // Students
+        Route::resource('students', StudentController::class);
+
+        // Schedules
+        Route::resource('schedules', ScheduleController::class);
+
+        // Settings
+        Route::get('setting', [SettingController::class, 'index'])->name('setting.index');
+        Route::put('setting', [SettingController::class, 'update'])->name('setting.update');
+
+    });
+
+    // Teacher CRUD
+    Route::prefix('teacher')->name('teacher.')->group(function () {
+        Route::resource('students', TeacherStudentController::class);
+
+        // Classes routes with custom attendance and scores
+        Route::get('classes', [TeacherClassController::class, 'index'])->name('classes.index');
+        Route::get('classes/attend', [TeacherClassController::class, 'attend'])->name('classes.attend');
+        Route::post('classes/saveAttend', [TeacherClassController::class, 'saveAttend'])->name('classes.saveAttend');
+        Route::get('classes/scores', [TeacherClassController::class, 'scores'])->name('classes.scores');
+        Route::post('classes/saveScores', [TeacherClassController::class, 'saveScores'])->name('classes.saveScores');
+        Route::get('classes/attendanceReport', [TeacherClassController::class, 'attendanceReport'])->name('classes.attendanceReport');
+        Route::get('classes/scoresReport', [TeacherClassController::class, 'scoresReport'])->name('classes.scoresReport');
+        Route::resource('classes', TeacherClassController::class, ['except' => ['index']]);
+
+        // Schedule routes
+        Route::get('schedule', [TeacherScheduleController::class, 'index'])->name('schedule.index');
+
+        // Setting routes
+        Route::get('setting', [TeacherSettingController::class, 'index'])->name('setting.index');
+        Route::put('setting', [TeacherSettingController::class, 'update'])->name('setting.update');
+
+        Route::resource('scores', TeacherScoreController::class);
+    });});
+
 require __DIR__ . '/auth.php';
