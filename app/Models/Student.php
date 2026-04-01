@@ -23,6 +23,10 @@ class Student extends Model
         'date_of_birth',
     ];
 
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class);

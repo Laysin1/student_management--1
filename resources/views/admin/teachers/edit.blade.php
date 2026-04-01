@@ -136,7 +136,7 @@
                 id="phone"
                 placeholder="+1 555 123 4567"
                 value="{{ old('phone_number', $teacher->phone_number) }}"
-                pattern="^[+0-9][0-9\s\-()]{6,}$"
+                pattern="[+0-9\s\-()]{7,}"
                 class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
             >
             <small class="text-gray-500 mt-1">Allowed: digits, spaces, dashes, parentheses, +</small>

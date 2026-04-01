@@ -16,19 +16,11 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Teacher profile not found');
         }
 
-        // Get teacher's classes
-        $classes = \App\Models\SchoolClass::where('teacher_id', $teacher->id)
-            ->with(['students', 'students.user'])
-            ->get();
-
+        // Get classes using pivot table relationship
+        $classes = $teacher->classes()->with('students.user')->get();
         $myClasses = $classes->count();
-        $myStudents = $classes->sum(function($class) {
-            return $class->students->count();
-        });
-        $mySchedules = \App\Models\Schedule::where(function($query) use ($teacher, $classes) {
-            $query->where('teacher_id', $teacher->id)
-                  ->orWhereIn('class_id', $classes->pluck('id')->toArray());
-        })->count();
+        $myStudents = $classes->flatMap(fn($class) => $class->students)->unique('id')->count();
+        $mySchedules = $teacher->schedules()->count();
         $myMessages = 0; // Replace with your logic
 
         return view('teacher.dashboard.index', compact(

@@ -62,12 +62,17 @@
     <td class="px-6 py-4 text-gray-700">{{ optional($t->subject)->name ?? 'N/A' }}</td>
     <!-- Classes column -->
     <td class="px-6 py-4 text-gray-700">
-      @if($t->classes && $t->classes->count())
+      @php
+        $classCount = $t->classes ? count($t->classes) : 0;
+      @endphp
+      @if($classCount > 0)
         @foreach($t->classes as $class)
-          <div>{{ $class->name }} ({{ $class->grade_level }})</div>
+          <div class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm mb-1 inline-block">
+            {{ $class->name }} ( {{ $class->grade_level }})
+          </div>
         @endforeach
       @else
-        —
+        <span class="text-gray-400">No classes assigned</span>
       @endif
     </td>
     <!-- Grades column -->

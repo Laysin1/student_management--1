@@ -21,20 +21,18 @@
         <!-- Classes Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse ($classes as $class)
-                @if($class->teacher_id === auth()->user()->teacher->id || $class->teacher_id == auth()->user()->teacher->id)
-                    <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                            {{ $class->grade_level }}
-                        </h3>
-                        <p class="text-gray-600 mb-2">{{ $class->name }}</p>
-                        <p class="text-sm text-gray-500 mb-4">{{ $class->students->count() }} Students</p>
-                        <div class="flex gap-2">
-                            <a href="{{ route('teacher.classes.show', $class->id) }}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-center text-sm">
-                                View Students
-                            </a>
-                        </div>
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        {{ $class->grade_level }}
+                    </h3>
+                    <p class="text-gray-600 mb-2">{{ $class->name }}</p>
+                    <p class="text-sm text-gray-500 mb-4">{{ $class->students->count() }} Students</p>
+                    <div class="flex gap-2">
+                        <a href="{{ route('teacher.classes.show', $class->id) }}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-center text-sm">
+                            View Students
+                        </a>
                     </div>
-                @endif
+                </div>
             @empty
                 <div class="col-span-full">
                     <p class="text-center text-gray-500 py-8">No classes assigned to you yet.</p>

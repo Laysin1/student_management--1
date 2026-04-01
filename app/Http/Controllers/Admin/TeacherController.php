@@ -15,7 +15,7 @@ class TeacherController extends Controller
 {
     public function index(\Illuminate\Http\Request $request)
 {
-    $q = \App\Models\Teacher::with(['user','class','subject'])->orderBy('last_name');
+    $q = \App\Models\Teacher::with(['user','classes','subject'])->orderBy('last_name');
 
     if ($search = $request->get('search')) {
         $q->where(function ($w) use ($search) {
@@ -84,11 +84,9 @@ public function store(Request $request)
             'subject_id' => $validated['subject_id'],
         ]);
 
-        // Assign classes
+        // Assign classes using pivot table
         if (isset($validated['class_ids'])) {
-            foreach ($validated['class_ids'] as $classId) {
-                SchoolClass::find($classId)->update(['teacher_id' => $teacher->id]);
-            }
+            $teacher->classes()->sync($validated['class_ids']);
         }
 
         DB::commit();
@@ -155,15 +153,8 @@ public function store(Request $request)
             // Get selected class IDs, filter out empty values
             $selectedClassIds = array_filter($validated['class_ids'] ?? []);
 
-            // First, unassign all classes from this teacher
-            SchoolClass::where('teacher_id', $teacher->id)
-                ->update(['teacher_id' => null]);
-
-            // Then assign the selected classes to this teacher
-            if (!empty($selectedClassIds)) {
-                SchoolClass::whereIn('id', $selectedClassIds)
-                    ->update(['teacher_id' => $teacher->id]);
-            }
+            // Sync classes (removes old, adds new)
+            $teacher->classes()->sync($selectedClassIds);
 
             DB::commit();
             return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully');
@@ -184,7 +175,7 @@ public function store(Request $request)
     // AJAX filter endpoint for index page
 public function filter(\Illuminate\Http\Request $request)
 {
-    $q = \App\Models\Teacher::with(['user','class','subject'])->orderBy('last_name');
+    $q = \App\Models\Teacher::with(['user','classes','subject'])->orderBy('last_name');
 
     if ($search = $request->get('search')) {
         $q->where(function ($w) use ($search) {

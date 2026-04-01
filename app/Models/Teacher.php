@@ -40,7 +40,7 @@ class Teacher extends Model
      */
     public function classes()
     {
-        return $this->hasMany(\App\Models\SchoolClass::class, 'teacher_id');
+        return $this->belongsToMany(\App\Models\SchoolClass::class, 'class_teacher', 'teacher_id', 'class_id');
     }
 
     /**
@@ -48,7 +48,7 @@ class Teacher extends Model
      */
     public function class()
     {
-        return $this->hasMany(\App\Models\SchoolClass::class, 'teacher_id');
+        return $this->belongsToMany(\App\Models\SchoolClass::class, 'class_teacher', 'teacher_id', 'class_id');
     }
 
     /**

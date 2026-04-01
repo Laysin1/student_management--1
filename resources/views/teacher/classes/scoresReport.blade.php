@@ -1,20 +1,45 @@
 @extends('layouts.teacher')
 
 @section('content')
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="font-semibold text-2xl text-gray-800">Student Scores Report</h2>
-                <a href="{{ route('teacher.classes.scores') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
-                    ← Go Back
-                </a>
-            </div>        <!-- Class + Month + Semester Filter -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="py-8 bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900">Scores Report</h1>
+                <p class="text-gray-600 mt-2">View and analyze student scores</p>
+            </div>
+            <a href="{{ route('teacher.classes.scores') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
+                ← Back to Scores
+            </a>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="flex gap-0 mb-8 border-b border-gray-300 bg-white rounded-t-lg">
+            <a href="{{ route('teacher.classes.index') }}" class="px-6 py-4 font-semibold text-gray-700 hover:text-blue-600 transition">
+                📚 Classes
+            </a>
+            <a href="{{ route('teacher.classes.attend') }}" class="px-6 py-4 font-semibold text-gray-700 hover:text-blue-600 transition">
+                📋 Attendance
+            </a>
+            <a href="{{ route('teacher.classes.scores') }}" class="px-6 py-4 font-semibold text-gray-700 hover:text-blue-600 transition">
+                ✏️ Scores
+            </a>
+            <a href="{{ route('teacher.classes.scoresReport') }}" class="px-6 py-4 font-semibold text-blue-600 border-b-4 border-blue-600">
+                📊 Report
+            </a>
+        </div>
+
+        <!-- Filter Form -->
+        <form method="GET" id="filterForm" class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Class Selection -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Class</label>
-                    <select name="class_id" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full" onchange="this.form.submit()">
-                        <option value="">-- Choose a Class --</option>
+                    <label class="block text-sm font-bold text-gray-900 mb-2">
+                        📚 Class <span class="text-red-500">*</span>
+                    </label>
+                    <select name="class_id" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900 bg-white cursor-pointer" required onchange="document.getElementById('filterForm').submit()">
+                        <option value="">-- Select Class --</option>
                         @foreach($classes as $class)
                             <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
                                 Grade {{ $class->grade_level }} - {{ $class->name }}
@@ -22,18 +47,26 @@
                         @endforeach
                     </select>
                 </div>
+
+                <!-- Type Selection -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
-                    <select name="report_type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full" onchange="this.form.submit()">
-                        <option value="">-- All Reports --</option>
-                        <option value="monthly" {{ request('report_type') == 'monthly' ? 'selected' : '' }}>Monthly Scores</option>
-                        <option value="semester" {{ request('report_type') == 'semester' ? 'selected' : '' }}>Semester Scores</option>
-                        <option value="final" {{ request('report_type') == 'final' ? 'selected' : '' }}>Final Scores</option>
+                    <label class="block text-sm font-bold text-gray-900 mb-2">
+                        📊 Type <span class="text-red-500">*</span>
+                    </label>
+                    <select name="report_type" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900 bg-white cursor-pointer" required onchange="handleTypeChange()">
+                        <option value="">-- Select Type --</option>
+                        <option value="monthly" {{ request('report_type') == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                        <option value="semester" {{ request('report_type') == 'semester' ? 'selected' : '' }}>Semester</option>
+                        <option value="final" {{ request('report_type') == 'final' ? 'selected' : '' }}>Final</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
-                    <select name="month" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full" onchange="this.form.submit()">
+
+                <!-- Month Selection (shows only for Monthly) -->
+                <div id="monthDiv" class="hidden">
+                    <label class="block text-sm font-bold text-gray-900 mb-2">
+                        📅 Month <span class="text-red-500">*</span>
+                    </label>
+                    <select name="month" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900 bg-white cursor-pointer" onchange="document.getElementById('filterForm').submit()">
                         <option value="">-- All Months --</option>
                         <option value="1" {{ request('month') == 1 ? 'selected' : '' }}>January</option>
                         <option value="2" {{ request('month') == 2 ? 'selected' : '' }}>February</option>
@@ -49,91 +82,130 @@
                         <option value="12" {{ request('month') == 12 ? 'selected' : '' }}>December</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Semester</label>
-                    <select name="semester" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full" onchange="this.form.submit()">
-                        <option value="">-- All --</option>
+
+                <!-- Semester Selection (shows only for Semester/Final) -->
+                <div id="semesterDiv" class="hidden">
+                    <label class="block text-sm font-bold text-gray-900 mb-2">
+                        🎓 Period <span class="text-red-500">*</span>
+                    </label>
+                    <select name="semester" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900 bg-white cursor-pointer" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">-- Select --</option>
                         <option value="1" {{ request('semester') == 1 ? 'selected' : '' }}>1st Semester</option>
                         <option value="2" {{ request('semester') == 2 ? 'selected' : '' }}>2nd Semester</option>
+                        <option value="final" {{ request('semester') == 'final' ? 'selected' : '' }}>Final</option>
                     </select>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
+
+        <script>
+            function handleTypeChange() {
+                const typeSelect = document.querySelector('select[name="report_type"]');
+                const monthDiv = document.getElementById('monthDiv');
+                const semesterDiv = document.getElementById('semesterDiv');
+
+                if (typeSelect.value === 'monthly') {
+                    monthDiv.classList.remove('hidden');
+                    semesterDiv.classList.add('hidden');
+                } else if (typeSelect.value === 'semester' || typeSelect.value === 'final') {
+                    monthDiv.classList.add('hidden');
+                    semesterDiv.classList.remove('hidden');
+                } else {
+                    monthDiv.classList.add('hidden');
+                    semesterDiv.classList.add('hidden');
+                }
+            }
+
+            // Initialize on page load
+            handleTypeChange();
+        </script>
 
         <!-- Scores Report Table -->
-        @if(request('class_id'))
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="bg-blue-50 px-6 py-4 border-b">
-                    <h3 class="text-lg font-semibold text-gray-800">
-                        @if(request('report_type') == 'semester' && request('semester') == '1')
+        @if(request('class_id') && ((request('report_type') == 'monthly' && request('month')) || (request('report_type') == 'semester' && request('semester')) || (request('report_type') == 'final' && request('semester'))))
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
+                    <h3 class="text-2xl font-bold text-white">
+                        📊
+                        @if(request('report_type') == 'monthly')
+                            {{ date('F Y', mktime(0, 0, 0, request('month'), 1)) }} - Monthly Scores
+                        @elseif(request('report_type') == 'semester' && request('semester') == '1')
                             1st Semester Scores
-                            @if(request('month'))
-                                - {{ date('F', mktime(0, 0, 0, request('month'), 1)) }}
-                            @endif
                         @elseif(request('report_type') == 'semester' && request('semester') == '2')
                             2nd Semester Scores
-                            @if(request('month'))
-                                - {{ date('F', mktime(0, 0, 0, request('month'), 1)) }}
-                            @endif
                         @elseif(request('report_type') == 'final')
                             Final Scores
-                            @if(request('month'))
-                                - {{ date('F', mktime(0, 0, 0, request('month'), 1)) }}
-                            @endif
-                        @elseif(request('report_type') == 'monthly')
-                            Monthly Scores
-                            @if(request('month'))
-                                - {{ date('F', mktime(0, 0, 0, request('month'), 1)) }}
-                            @endif
-                        @else
-                            All Scores
                         @endif
                     </h3>
                 </div>
 
-                <table class="w-full">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Student ID</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Gender</th>
-                            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y">
-                        @forelse($scoreRecords as $record)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 text-sm text-gray-900">{{ $record->student->user->name ?? 'N/A' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $record->student->student_id ?? 'N/A' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $record->student->user->email ?? 'N/A' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst($record->student->gender ?? 'N/A') }}</td>
-                                <td class="px-6 py-4 text-center text-sm text-gray-600 font-semibold">
-                                    @if(request('report_type') == 'semester' && request('semester') == '1')
-                                        {{ $record->first_semester ?? '—' }}
-                                    @elseif(request('report_type') == 'semester' && request('semester') == '2')
-                                        {{ $record->second_semester ?? '—' }}
-                                    @else
-                                        {{ $record->final_score ?? '—' }}
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300">
                             <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">No score records found for the selected filters.</td>
+                                <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Student Name</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">ID</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold text-gray-900">Email</th>
+                                <th class="px-6 py-4 text-center text-sm font-bold text-gray-900">Gender</th>
+                                <th class="px-6 py-4 text-center text-sm font-bold text-blue-600">Score</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse($scoreRecords as $index => $record)
+                                <tr class="border-b hover:bg-blue-50 transition {{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50' }}">
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $record->student->user->name ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $record->student->student_id ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $record->student->user->email ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 text-center">{{ ucfirst($record->student->gender ?? 'N/A') }}</td>
+                                    <td class="px-6 py-4 text-center text-sm font-bold">
+                                        @if(request('report_type') == 'semester' && request('semester') == '1')
+                                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{ $record->first_semester ?? '—' }}</span>
+                                        @elseif(request('report_type') == 'semester' && request('semester') == '2')
+                                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">{{ $record->second_semester ?? '—' }}</span>
+                                        @else
+                                            <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{{ $record->final_score ?? '—' }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m0 0h6"/>
+                                        </svg>
+                                        <p class="text-gray-500 font-semibold">No score records found</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if($scoreRecords->count() > 0)
+                    <div class="px-6 py-4 border-t bg-gray-50">
+                        {{ $scoreRecords->links() }}
+                    </div>
+                @endif
             </div>
 
-            <!-- Pagination -->
-            <div class="mt-6">
-                {{ $scoreRecords->links() }}
+        @elseif(request('class_id'))
+            <!-- Empty State - Select Type -->
+            <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                <svg class="w-20 h-20 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="text-gray-600 font-semibold text-lg mt-4">Select a type and period above to view the report</p>
             </div>
+
         @else
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <p class="text-gray-500">Select a class to view scores report</p>
+            <!-- Empty State - Select Class -->
+            <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                <svg class="w-20 h-20 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+                <p class="text-gray-600 font-semibold text-lg mt-4">Select a class to get started</p>
             </div>
         @endif
     </div>
