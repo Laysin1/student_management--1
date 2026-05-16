@@ -14,7 +14,7 @@
     <!-- LEFT SIDEBAR -->
     <aside class="w-64 h-screen bg-blue-900 text-white fixed top-0 left-0 flex flex-col">
         <div class="p-6 flex flex-col items-center">
-            <img src="https://web-new.rupp.edu.kh/wp-content/uploads/2025/02/logo-rupp-1-1024x1024.png" class="w-20 mb-3">
+            <img src="{{ asset('images/admin.png') }}" class="w-20 mb-3">
             <h1 class="text-lg font-semibold text-center">RUPP Admin</h1>
         </div>
 
@@ -34,6 +34,10 @@
             <a href="{{ route('schedules.index') }}"
                class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/schedule*') ? 'bg-blue-800' : '' }}">
                 Schedule
+            </a>
+            <a href="{{ route('parents.index') }}"
+               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/parents*') ? 'bg-blue-800' : '' }}">
+                Parents
             </a>
             <a href="{{ route('setting.index') }}"
                class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/setting*') ? 'bg-blue-800' : '' }}">

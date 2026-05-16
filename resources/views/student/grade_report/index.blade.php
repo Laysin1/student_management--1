@@ -132,98 +132,121 @@
         </div>
 
         <!-- Semester Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-            @php
-                $semesters = [
-                    'first_semester' => 'Semester 1',
-                    'second_semester' => 'Semester 2',
-                    'final_score' => 'Final Score'
-                ];
-            @endphp
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+    @php
+        /*
+            Semester 1 = Average of Dec, Jan, Feb, Mar
+            Semester 2 = Average of Apr, May, Jun, Jul
+            Final Score = (Semester 1 + Semester 2) / 2
+        */
 
-            @foreach($semesters as $key => $label)
-                @php
-                    $semesterScores = DB::table('scores')
-                        ->where('student_id', $student->id)
-                        ->where('year', request()->query('year', 2026))
-                        ->whereNotNull($key)
-                        ->where($key, '>', 0)
-                        ->where(function($q) {
-                            $q->whereNull('month')->orWhere('month', 0);
-                        })
-                        ->get();
+        $allScores = collect($gradesByMonth)->flatten(1);
 
-                    $hasData = count($semesterScores) > 0;
-                @endphp
+        $semester1Months = [12, 1, 2, 3];
+        $semester2Months = [4, 5, 6, 7];
 
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="@if($hasData) bg-purple-100 @else bg-gray-100 @endif px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-gray-900">{{ $label }}</h3>
-                        @if(!$hasData)
-                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-50 border border-yellow-200">
-                                <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                </svg>
-                                <span class="text-xs font-medium text-yellow-700">Awaiting input</span>
-                            </span>
-                        @endif
-                    </div>
+        $semester1Scores = $allScores->whereIn('month', $semester1Months);
+        $semester2Scores = $allScores->whereIn('month', $semester2Months);
 
-                    @if($hasData)
-                        <!-- Data Table -->
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-50 border-b border-gray-200">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left font-semibold text-gray-700">No.</th>
-                                        <th class="px-4 py-3 text-left font-semibold text-gray-700">Month</th>
-                                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Score</th>
-                                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Grade</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    @foreach($semesterScores as $index => $score)
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-4 py-3 text-gray-900 font-medium">{{ $index + 1 }}</td>
-                                            <td class="px-4 py-3 text-gray-900">
-                                                @php
-                                                    $monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                                                    echo $monthNames[$score->month] ?? 'N/A';
-                                                @endphp
-                                            </td>
-                                            <td class="px-4 py-3 text-center text-gray-900 font-medium">{{ $score->{$key} }}/100</td>
-                                            <td class="px-4 py-3 text-center font-semibold @if($score->grade === 'A') text-green-600 @elseif($score->grade === 'B') text-blue-600 @elseif($score->grade === 'C') text-yellow-600 @elseif($score->grade === 'D') text-orange-600 @else text-red-600 @endif">
-                                                {{ $score->grade }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                            <div class="text-right">
-                                <p class="text-gray-600 text-sm">Average Score</p>
-                                <p class="text-lg font-bold text-gray-900">
-                                    @php
-                                        $avgScore = collect($semesterScores)->avg($key);
-                                        echo number_format($avgScore, 2);
-                                    @endphp
-                                </p>
-                            </div>
-                        </div>
-                    @else
-                        <!-- Empty State -->
-                        <div class="flex flex-col items-center justify-center py-16">
-                            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <p class="text-lg font-bold text-gray-900 mb-1">No data available</p>
-                            <p class="text-sm text-gray-500">Grades will appear when submitted</p>
-                        </div>
-                    @endif
+        $semester1Average = $semester1Scores->count() > 0
+            ? round($semester1Scores->avg('score'), 2)
+            : null;
+
+        $semester2Average = $semester2Scores->count() > 0
+            ? round($semester2Scores->avg('score'), 2)
+            : null;
+
+        $finalAverage = ($semester1Average !== null && $semester2Average !== null)
+            ? round(($semester1Average + $semester2Average) / 2, 2)
+            : null;
+
+        $semesterCards = [
+            [
+                'title' => 'Semester 1',
+                'score' => $semester1Average,
+                'formula' => 'Average: Dec → Mar',
+            ],
+            [
+                'title' => 'Semester 2',
+                'score' => $semester2Average,
+                'formula' => 'Average: Apr → Jul',
+            ],
+            [
+                'title' => 'Final Score',
+                'score' => $finalAverage,
+                'formula' => '(Semester 1 + Semester 2) / 2',
+            ],
+        ];
+
+        function getGradeLetter($score) {
+            if ($score === null) return 'N/A';
+            if ($score >= 90) return 'A';
+            if ($score >= 80) return 'B';
+            if ($score >= 70) return 'C';
+            if ($score >= 60) return 'D';
+            return 'F';
+        }
+    @endphp
+
+    @foreach($semesterCards as $card)
+        @php
+            $hasData = $card['score'] !== null;
+            $grade = getGradeLetter($card['score']);
+        @endphp
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="@if($hasData) bg-purple-100 @else bg-gray-100 @endif px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">
+                        {{ $card['title'] }}
+                    </h3>
+                    <p class="text-xs text-gray-600 mt-1">
+                        {{ $card['formula'] }}
+                    </p>
                 </div>
-            @endforeach
+
+                @if(!$hasData)
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-50 border border-yellow-200">
+                        <span class="text-xs font-medium text-yellow-700">
+                            Awaiting input
+                        </span>
+                    </span>
+                @endif
+            </div>
+
+            @if($hasData)
+                <div class="p-8 text-center">
+                    <p class="text-sm text-gray-500 mb-2">
+                        Score
+                    </p>
+
+                    <h2 class="text-5xl font-bold text-gray-900 mb-3">
+                        {{ number_format($card['score'], 2) }}
+                    </h2>
+
+                    <span class="inline-flex px-4 py-2 rounded-full bg-gray-100 text-sm font-bold
+                        @if($grade === 'A') text-green-600
+                        @elseif($grade === 'B') text-blue-600
+                        @elseif($grade === 'C') text-yellow-600
+                        @elseif($grade === 'D') text-orange-600
+                        @else text-red-600
+                        @endif">
+                        Grade {{ $grade }}
+                    </span>
+                </div>
+            @else
+                <div class="flex flex-col items-center justify-center py-16">
+                    <p class="text-lg font-bold text-gray-900 mb-1">
+                        No data available
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        Semester score will appear when monthly grades are submitted
+                    </p>
+                </div>
+            @endif
         </div>
+    @endforeach
+</div>
         <div class="fixed bottom-0 left-64 right-0 bg-white border-t-2 border-blue-500 px-6 py-3">
             <div class="max-w-7xl mx-auto flex items-center gap-3">
                 <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

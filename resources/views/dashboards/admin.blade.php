@@ -1,78 +1,125 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-8">
 
-    <!-- Dashboard Title -->
-    <div>
-        <h2 class="text-2xl font-semibold text-gray-800">Dashboard</h2>
-        <p class="text-gray-500">Welcome to the RUPP Admin Panel</p>
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow">
+        <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+        <p class="mt-2 text-blue-100">
+            Welcome to the RUPP Admin Panel. Here is today’s school system overview.
+        </p>
     </div>
 
     <!-- Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        <!-- Total Teachers -->
-        <div class="bg-white shadow rounded-lg p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-gray-500">Total Teachers</p>
-                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $totalTeachers }}</p>
+                    <p class="text-sm text-gray-500">Total Teachers</p>
+                    <h2 class="mt-2 text-3xl font-bold text-gray-900">{{ $totalTeachers }}</h2>
                 </div>
-                <div class="bg-blue-100 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.84 4.42c0 3.31-2.69 6-6 6s-6-2.69-6-6a12.083 12.083 0 01.84-4.42L12 14z" />
-                    </svg>
+                <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">👨‍🏫</span>
                 </div>
             </div>
         </div>
 
-        <!-- Total Classes -->
-        <div class="bg-white shadow rounded-lg p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-gray-500">Total Classes</p>
-                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $totalClasses }}</p>
+                    <p class="text-sm text-gray-500">Total Classes</p>
+                    <h2 class="mt-2 text-3xl font-bold text-gray-900">{{ $totalClasses }}</h2>
                 </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
+                <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">🏫</span>
                 </div>
             </div>
         </div>
 
-        <!-- Total Students -->
-        <div class="bg-white shadow rounded-lg p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-gray-500">Total Students</p>
-                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $totalStudents }}</p>
+                    <p class="text-sm text-gray-500">Total Students</p>
+                    <h2 class="mt-2 text-3xl font-bold text-gray-900">{{ $totalStudents }}</h2>
                 </div>
-                <div class="bg-yellow-100 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.43 0 4.68.65 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
+                <div class="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">🎓</span>
                 </div>
             </div>
         </div>
 
-        <!-- Total Schedules -->
-        <div class="bg-white shadow rounded-lg p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-gray-500">Total Schedules</p>
-                    <p class="mt-2 text-2xl font-bold text-gray-800">{{ $totalSchedules }}</p>
+                    <p class="text-sm text-gray-500">Total Schedules</p>
+                    <h2 class="mt-2 text-3xl font-bold text-gray-900">{{ $totalSchedules }}</h2>
                 </div>
-                <div class="bg-red-100 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
+                <div class="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
+                    <span class="text-2xl">📅</span>
                 </div>
             </div>
         </div>
 
     </div>
+
+    <!-- Summary Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">System Overview</h2>
+            <p class="text-gray-500 text-sm mb-6">
+                This dashboard gives a quick summary of the school management system.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 rounded-xl bg-blue-50">
+                    <p class="text-sm text-blue-600 font-semibold">Teachers</p>
+                    <p class="text-gray-700 mt-1">Manage teacher profiles and subjects.</p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-green-50">
+                    <p class="text-sm text-green-600 font-semibold">Classes</p>
+                    <p class="text-gray-700 mt-1">Organize classes by grade level.</p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-yellow-50">
+                    <p class="text-sm text-yellow-600 font-semibold">Students</p>
+                    <p class="text-gray-700 mt-1">View and manage student information.</p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-red-50">
+                    <p class="text-sm text-red-600 font-semibold">Schedules</p>
+                    <p class="text-gray-700 mt-1">Upload class and teacher schedules.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Today</h2>
+
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-500">Date</p>
+                    <p class="font-bold text-gray-900">{{ now()->format('M d, Y') }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Panel</p>
+                    <p class="font-bold text-gray-900">RUPP Admin</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Status</p>
+                    <span class="inline-block mt-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                        Active
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 @endsection

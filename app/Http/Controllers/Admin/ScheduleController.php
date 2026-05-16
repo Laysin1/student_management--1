@@ -24,37 +24,40 @@ class ScheduleController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'type' => 'required|in:class,teacher',
-            'class_id' => 'required_if:type,class|nullable|exists:school_classes,id',
-            'teacher_id' => 'required_if:type,teacher|nullable|exists:teachers,id',
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:4096',
+{
+    $validated = $request->validate([
+        'title' => 'nullable|string|max:150',
+        'type' => 'required|in:class,teacher',
+        'class_id' => 'required_if:type,class|nullable|exists:school_classes,id',
+        'teacher_id' => 'required_if:type,teacher|nullable|exists:teachers,id',
+        'photo' => 'required|image|mimes:jpeg,png,jpg|max:4096',
+    ]);
+
+    try {
+        $photoPath = null;
+
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('schedules', 'public');
+        }
+
+        Schedule::create([
+            'title' => $validated['title'] ?? null,
+            'type' => $validated['type'],
+            'class_id' => $validated['type'] === 'class' ? $validated['class_id'] : null,
+            'teacher_id' => $validated['type'] === 'teacher' ? $validated['teacher_id'] : null,
+            'photo_path' => $photoPath,
         ]);
 
-        try {
-            $photoPath = null;
-            if ($request->hasFile('photo')) {
-                $photoPath = $request->file('photo')->store('schedules', 'public');
-            }
+        return redirect()
+            ->route('schedules.index')
+            ->with('success', 'Schedule uploaded successfully!');
 
-            if ($validated['type'] === 'class') {
-                \App\Models\Schedule::create([
-                    'class_id' => $validated['class_id'],
-                    'photo_path' => $photoPath,
-                ]);
-            } else {
-                \App\Models\Schedule::create([
-                    'teacher_id' => $validated['teacher_id'],
-                    'photo_path' => $photoPath,
-                ]);
-            }
-
-            return redirect()->route('schedules.index')->with('success', 'Schedule uploaded successfully!');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to upload schedule: ' . $e->getMessage()])->withInput();
-        }
+    } catch (\Exception $e) {
+        return back()
+            ->withErrors(['error' => 'Failed to upload schedule: ' . $e->getMessage()])
+            ->withInput();
     }
+}
 
     public function show(\App\Models\Schedule $schedule)
     {

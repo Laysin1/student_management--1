@@ -17,8 +17,10 @@ use App\Http\Controllers\Teacher\ScoreController as TeacherScoreController;
 use App\Http\Controllers\Teacher\SettingController as TeacherSettingController;
 use App\Http\Controllers\Teacher\ScheduleController as TeacherScheduleController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\SettingController as StudentSettingController;
+use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,7 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/admin', [DashboardController::class, 'index'])->name('dashboard.admin');
     Route::get('/dashboard/teacher', [TeacherDashboardController::class, 'teacherHome'])->name('dashboard.teacher');
     Route::get('/dashboard/student', [StudentDashboardController::class, 'index'])->name('dashboard.student');
-    Route::get('/dashboard/parent', fn() => view('dashboards.parent'))->name('dashboard.parent');
+    Route::get('/dashboard/parent', [ParentDashboardController::class, 'dashboard'])->name('dashboard.parent');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -95,6 +97,9 @@ Route::middleware('auth')->group(function () {
         Route::get('setting', [SettingController::class, 'index'])->name('setting.index');
         Route::put('setting', [SettingController::class, 'update'])->name('setting.update');
 
+        // Parents
+        Route::resource('parents', ParentController::class);
+
     });
 
     // Teacher CRUD
@@ -122,16 +127,30 @@ Route::middleware('auth')->group(function () {
     });
 
     // Student routes
-    Route::prefix('student')->name('student.')->group(function () {
-        Route::get('classes', fn() => view('student.classes.index'))->name('classes.index');
-        Route::get('attendance', fn() => view('student.attendance.index'))->name('attendance');
-        Route::get('scores', fn() => view('student.grade_report.index'))->name('scores');
-        Route::get('schedule', fn() => view('student.schedule.index'))->name('schedule');
-        Route::get('grades', [App\Http\Controllers\Student\GradeReportController::class, 'index'])->name('scores');
+    // Student routes
+Route::prefix('student')->name('student.')->group(function () {
+    Route::get('classes', fn() => view('student.classes.index'))->name('classes.index');
 
+    Route::get('attendance', [StudentController::class, 'attendance'])->name('attendance');
+
+    Route::get('scores', fn() => view('student.grade_report.index'))->name('scores');
+    Route::get('schedule', fn() => view('student.schedule.index'))->name('schedule');
+    Route::get('grades', [App\Http\Controllers\Student\GradeReportController::class, 'index'])->name('grades');
+
+    Route::get('setting', [StudentSettingController::class, 'index'])->name('setting.index');
+    Route::put('setting', [StudentSettingController::class, 'update'])->name('setting.update');
+});
         // Settings routes
         Route::get('setting', [StudentSettingController::class, 'index'])->name('setting.index');
         Route::put('setting', [StudentSettingController::class, 'update'])->name('setting.update');
+
+
+    // Parent routes
+    Route::prefix('parent')->name('parent.')->group(function () {
+        Route::get('classes', [ParentDashboardController::class, 'classes'])->name('classes');
+        Route::get('grades/{studentId}', [ParentDashboardController::class, 'grades'])->name('grades');
+        Route::get('attendance/{studentId}', [ParentDashboardController::class, 'attendance'])->name('attendance');
+        Route::get('schedule', [ParentDashboardController::class, 'schedule'])->name('schedule');
     });
 });
 

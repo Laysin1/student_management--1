@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
+use App\Models\Attendance;
+use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
 {
@@ -144,4 +146,32 @@ public function store(Request $request)
         $student->delete();
         return redirect()->route('students.index')->with('success', 'Student deleted.');
     }
+    public function attendance()
+{
+    $student = Auth::user()->student;
+
+    $records = $student
+        ? Attendance::where('student_id', $student->id)
+            ->orderBy('attendance_date', 'desc')
+            ->get()
+        : collect();
+
+    $presentCount = $records->where('status', 'present')->count();
+    $absentCount = $records->where('status', 'absent')->count();
+    $permissionCount = $records->where('status', 'permission')->count();
+
+    $totalCount = $records->count();
+
+    $attendanceRate = $totalCount > 0
+        ? round((($presentCount + $permissionCount) / $totalCount) * 100)
+        : 0;
+
+    return view('student.attendance.index', compact(
+    'records',
+    'presentCount',
+    'absentCount',
+    'permissionCount',
+    'attendanceRate'
+));
+}
 }

@@ -1,86 +1,268 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container mx-auto px-6 py-8 max-w-3xl">
-  <h1 class="text-2xl font-bold mb-2">Edit Schedule</h1>
-  <p class="text-gray-600 mb-6">Update schedule and image.</p>
+<div class="container mx-auto px-6 py-8 max-w-4xl">
 
-  @if ($errors->any())
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-      <ul class="list-disc pl-5">
-        @foreach ($errors->all() as $error)
-          <li class="text-sm">{{ $error }}</li>
-        @endforeach
-      </ul>
-    </div>
-  @endif
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Edit Schedule</h1>
+            <p class="text-gray-500 mt-1">Update schedule information and image.</p>
+        </div>
 
-  <form action="{{ route('schedules.update', $schedule->id) }}" method="POST" enctype="multipart/form-data" class="bg-white shadow rounded-lg p-6 space-y-5">
-    @csrf
-    @method('PUT')
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="font-semibold text-gray-800 mb-2 block">Title</label>
-        <input type="text" name="title" value="{{ old('title', $schedule->title) }}" class="border border-gray-300 rounded px-3 py-2 w-full">
-      </div>
-      <div>
-        <label class="font-semibold text-gray-800 mb-2 block">Type <span class="text-red-500">*</span></label>
-        <select name="type" id="type" class="border border-gray-300 rounded px-3 py-2 w-full" required>
-          <option value="class" {{ old('type', $schedule->type)==='class'?'selected':'' }}>Class</option>
-          <option value="teacher" {{ old('type', $schedule->type)==='teacher'?'selected':'' }}>Teacher</option>
-        </select>
-      </div>
+        <a href="{{ route('schedules.index') }}"
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-xl font-semibold">
+            Back
+        </a>
     </div>
 
-    <div id="classSelect" class="{{ old('type', $schedule->type)==='class' ? '' : 'hidden' }}">
-      <label class="font-semibold text-gray-800 mb-2 block">Class <span class="text-red-500">*</span></label>
-      <select name="class_id" class="border border-gray-300 rounded px-3 py-2 w-full">
-        <option value="">Select class</option>
-        @foreach(($classes ?? []) as $class)
-          <option value="{{ $class->id }}" {{ (string)old('class_id', $schedule->class_id) === (string)$class->id ? 'selected' : '' }}>
-            {{ $class->name }} ({{ $class->grade_level }})
-          </option>
-        @endforeach
-      </select>
-    </div>
+    @if ($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl mb-6">
+            <h3 class="font-bold mb-2">Please fix these errors:</h3>
+            <ul class="list-disc pl-5 space-y-1">
+                @foreach ($errors->all() as $error)
+                    <li class="text-sm">{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    <div id="teacherSelect" class="{{ old('type', $schedule->type)==='teacher' ? '' : 'hidden' }}">
-      <label class="font-semibold text-gray-800 mb-2 block">Teacher <span class="text-red-500">*</span></label>
-      <select name="teacher_id" class="border border-gray-300 rounded px-3 py-2 w-full">
-        <option value="">Select teacher</option>
-        @foreach(($teachers ?? []) as $t)
-          <option value="{{ $t->id }}" {{ (string)old('teacher_id', $schedule->teacher_id) === (string)$t->id ? 'selected' : '' }}>
-            {{ $t->first_name }} {{ $t->last_name }} — {{ optional($t->subject)->name }}
-          </option>
-        @endforeach
-      </select>
-    </div>
+    <form action="{{ route('schedules.update', $schedule->id) }}"
+          method="POST"
+          enctype="multipart/form-data"
+          class="bg-white shadow-sm rounded-2xl border border-gray-100 p-8 space-y-6">
 
-    <div>
-      <label class="font-semibold text-gray-800 mb-2 block">Schedule Image</label>
-      @if(!empty($schedule->photo_path))
-        <img src="{{ asset('storage/'.$schedule->photo_path) }}" alt="Schedule" class="w-full max-h-64 object-contain border rounded mb-2">
-      @endif
-      <input type="file" name="photo" accept="image/*" class="border border-gray-300 rounded px-3 py-2 w-full">
-      <small class="text-gray-500">Upload a new image to replace the current one (PNG/JPG up to 4 MB).</small>
-    </div>
+        @csrf
+        @method('PUT')
 
-    <div class="flex gap-3">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold">Save</button>
-      <a href="{{ route('schedules.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold">Cancel</a>
-    </div>
-  </form>
+        <!-- Title -->
+        <div>
+            <label class="font-semibold text-gray-800 mb-2 block">
+                Schedule Title
+            </label>
 
-  <script>
-    const typeSel = document.getElementById('type');
+            <input type="text"
+                   name="title"
+                   value="{{ old('title', $schedule->title) }}"
+                   placeholder="Example: Grade 11 Weekly Schedule"
+                   class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+
+            <p class="text-xs text-gray-400 mt-1">
+                Optional. This title will appear on the schedule details page.
+            </p>
+        </div>
+
+        <!-- Schedule Type -->
+        <div>
+            <label class="font-semibold text-gray-800 mb-3 block">
+                Schedule For <span class="text-red-500">*</span>
+            </label>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <label class="border rounded-2xl p-5 cursor-pointer hover:border-blue-500 transition flex items-start gap-3">
+                    <input type="radio"
+                           name="type"
+                           value="class"
+                           class="mt-1"
+                           {{ old('type', $schedule->type) === 'class' ? 'checked' : '' }}>
+
+                    <div>
+                        <h3 class="font-bold text-gray-900">Class Schedule</h3>
+                        <p class="text-sm text-gray-500">
+                            This schedule belongs to a class.
+                        </p>
+                    </div>
+                </label>
+
+                <label class="border rounded-2xl p-5 cursor-pointer hover:border-purple-500 transition flex items-start gap-3">
+                    <input type="radio"
+                           name="type"
+                           value="teacher"
+                           class="mt-1"
+                           {{ old('type', $schedule->type) === 'teacher' ? 'checked' : '' }}>
+
+                    <div>
+                        <h3 class="font-bold text-gray-900">Teacher Schedule</h3>
+                        <p class="text-sm text-gray-500">
+                            This schedule belongs to a teacher.
+                        </p>
+                    </div>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- Class Select -->
+        <div id="classSelect">
+            <label class="font-semibold text-gray-800 mb-2 block">
+                Select Class <span class="text-red-500">*</span>
+            </label>
+
+            <select name="class_id"
+                    id="class_id"
+                    class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Choose a class</option>
+
+                @foreach(($classes ?? []) as $class)
+                    <option value="{{ $class->id }}"
+                        {{ (string) old('class_id', $schedule->class_id) === (string) $class->id ? 'selected' : '' }}>
+                        {{ $class->name }}
+                        @if($class->grade_level)
+                            ({{ $class->grade_level }})
+                        @endif
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Teacher Select -->
+        <div id="teacherSelect">
+            <label class="font-semibold text-gray-800 mb-2 block">
+                Select Teacher <span class="text-red-500">*</span>
+            </label>
+
+            <select name="teacher_id"
+                    id="teacher_id"
+                    class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                <option value="">Choose a teacher</option>
+
+                @foreach(($teachers ?? []) as $teacher)
+                    <option value="{{ $teacher->id }}"
+                        {{ (string) old('teacher_id', $schedule->teacher_id) === (string) $teacher->id ? 'selected' : '' }}>
+                        {{ $teacher->first_name }} {{ $teacher->last_name }}
+                        @if(optional($teacher->subject)->name)
+                            — {{ optional($teacher->subject)->name }}
+                        @endif
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Current Image -->
+        <div>
+            <label class="font-semibold text-gray-800 mb-2 block">
+                Current Schedule Image
+            </label>
+
+            @if(!empty($schedule->photo_path))
+                <div class="border rounded-2xl bg-gray-50 p-4">
+                    <img src="{{ asset('storage/'.$schedule->photo_path) }}"
+                         alt="Schedule"
+                         class="w-full max-h-[350px] object-contain rounded-xl">
+
+                    <a href="{{ asset('storage/'.$schedule->photo_path) }}"
+                       target="_blank"
+                       class="inline-block mt-3 text-blue-600 hover:underline text-sm font-semibold">
+                        Open full size
+                    </a>
+                </div>
+            @else
+                <div class="border rounded-2xl bg-gray-50 p-6 text-center text-gray-500">
+                    No image uploaded
+                </div>
+            @endif
+        </div>
+
+        <!-- Replace Image -->
+        <div>
+            <label class="font-semibold text-gray-800 mb-2 block">
+                Replace Image
+            </label>
+
+            <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 bg-gray-50">
+                <input type="file"
+                       name="photo"
+                       id="photo"
+                       accept="image/*"
+                       class="block w-full text-sm text-gray-600">
+
+                <p class="text-xs text-gray-400 mt-2">
+                    Upload only if you want to replace the current image. JPG or PNG up to 4 MB.
+                </p>
+            </div>
+        </div>
+
+        <!-- New Preview -->
+        <div id="previewBox" class="hidden">
+            <label class="font-semibold text-gray-800 mb-2 block">
+                New Image Preview
+            </label>
+
+            <img id="imagePreview"
+                 src=""
+                 alt="New Schedule Preview"
+                 class="w-full max-h-[400px] object-contain border rounded-xl bg-gray-50">
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t">
+
+            <a href="{{ route('schedules.index') }}"
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold">
+                Update Schedule
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+    const typeInputs = document.querySelectorAll('input[name="type"]');
+
     const classBox = document.getElementById('classSelect');
     const teacherBox = document.getElementById('teacherSelect');
-    typeSel.addEventListener('change', () => {
-      const v = typeSel.value;
-      classBox.classList.toggle('hidden', v !== 'class');
-      teacherBox.classList.toggle('hidden', v !== 'teacher');
+
+    const classSelect = document.getElementById('class_id');
+    const teacherSelect = document.getElementById('teacher_id');
+
+    function updateScheduleType() {
+        const selectedType = document.querySelector('input[name="type"]:checked').value;
+
+        if (selectedType === 'class') {
+            classBox.classList.remove('hidden');
+            teacherBox.classList.add('hidden');
+
+            classSelect.disabled = false;
+            teacherSelect.disabled = true;
+            teacherSelect.value = '';
+        } else {
+            teacherBox.classList.remove('hidden');
+            classBox.classList.add('hidden');
+
+            teacherSelect.disabled = false;
+            classSelect.disabled = true;
+            classSelect.value = '';
+        }
+    }
+
+    typeInputs.forEach(input => {
+        input.addEventListener('change', updateScheduleType);
     });
-  </script>
-</div>
+
+    updateScheduleType();
+
+    const photoInput = document.getElementById('photo');
+    const previewBox = document.getElementById('previewBox');
+    const imagePreview = document.getElementById('imagePreview');
+
+    photoInput.addEventListener('change', function () {
+        const file = this.files[0];
+
+        if (file) {
+            imagePreview.src = URL.createObjectURL(file);
+            previewBox.classList.remove('hidden');
+        } else {
+            imagePreview.src = '';
+            previewBox.classList.add('hidden');
+        }
+    });
+</script>
 @endsection
