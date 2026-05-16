@@ -135,7 +135,7 @@ public function store(Request $request)
         ]);
 
         DB::commit();
-        return redirect()->route('students.index')->with('success', 'Student created successfully');
+        return redirect()->route('admin.students.index')->with('success', 'Student created successfully');
     } catch (Exception $e) {
         DB::rollBack();
         return back()->withErrors(['error' => 'Failed to create student: ' . $e->getMessage()]);
@@ -144,7 +144,7 @@ public function store(Request $request)
     public function destroy(Student $student)
     {
         $student->delete();
-        return redirect()->route('students.index')->with('success', 'Student deleted.');
+        return redirect()->route('admin.students.index')->with('success', 'Student deleted.');
     }
     public function attendance()
 {

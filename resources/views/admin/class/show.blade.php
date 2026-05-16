@@ -4,7 +4,7 @@
 <div class="container mx-auto px-6 py-8 max-w-4xl">
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
-    <a href="{{ route('classes.index') }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">
+    <a href="{{ route('admin.classes.index') }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7M3 12h18"/>
       </svg>
@@ -51,7 +51,7 @@
             <td class="px-6 py-4 text-gray-700">{{ $class->students_count ?? $class->students()->count() }}</td>
             <td class="px-6 py-4 text-gray-700">{{ $class->teachers_count ?? $class->teachers()->count() }}</td>
             <td class="px-6 py-4 text-center">
-              <form action="{{ route('classes.destroy', $class->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete {{ $class->name }}? This action cannot be undone.');">
+              <form action="{{ route('admin.classes.destroy', $class->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete {{ $class->name }}? This action cannot be undone.');">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold text-sm transition">

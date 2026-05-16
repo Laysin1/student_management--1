@@ -13,7 +13,7 @@
                 </p>
             </div>
 
-            <a href="{{ route('teachers.create') }}"
+            <a href="{{ route('admin.teachers.create') }}"
                class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-3 rounded-xl font-semibold shadow text-center">
                 + Add Teacher
             </a>
@@ -22,7 +22,7 @@
 
     <!-- Search -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <form action="{{ route('teachers.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form action="{{ route('admin.teachers.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold text-gray-700 mb-2 block">
@@ -62,7 +62,7 @@
                 </button>
 
                 @if(request('search') || request('subject_id'))
-                    <a href="{{ route('teachers.index') }}"
+                    <a href="{{ route('admin.teachers.index') }}"
                        class="w-full text-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-3 rounded-xl font-semibold">
                         Reset
                     </a>
@@ -167,17 +167,17 @@
                             <!-- Actions -->
                             <td class="px-6 py-4">
                                 <div class="flex justify-center gap-2">
-                                    <a href="{{ route('teachers.show', $t->id) }}"
+                                    <a href="{{ route('admin.teachers.show', $t->id) }}"
                                        class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-lg text-sm font-semibold">
                                         View
                                     </a>
 
-                                    <a href="{{ route('teachers.edit', $t->id) }}"
+                                    <a href="{{ route('admin.teachers.edit', $t->id) }}"
                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-semibold">
                                         Edit
                                     </a>
 
-                                    <form action="{{ route('teachers.destroy', $t->id) }}"
+                                    <form action="{{ route('admin.teachers.destroy', $t->id) }}"
                                           method="POST"
                                           onsubmit="return confirm('Delete this teacher?');">
                                         @csrf

@@ -10,7 +10,7 @@
             <p class="text-gray-500 mt-1">Update schedule information and image.</p>
         </div>
 
-        <a href="{{ route('schedules.index') }}"
+        <a href="{{ route('admin.schedules.index') }}"
            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-xl font-semibold">
             Back
         </a>
@@ -27,7 +27,7 @@
         </div>
     @endif
 
-    <form action="{{ route('schedules.update', $schedule->id) }}"
+    <form action="{{ route('admin.schedules.update', $schedule->id) }}"
           method="POST"
           enctype="multipart/form-data"
           class="bg-white shadow-sm rounded-2xl border border-gray-100 p-8 space-y-6">
@@ -198,7 +198,7 @@
         <!-- Buttons -->
         <div class="flex items-center justify-end gap-3 pt-4 border-t">
 
-            <a href="{{ route('schedules.index') }}"
+            <a href="{{ route('admin.schedules.index') }}"
                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold">
                 Cancel
             </a>

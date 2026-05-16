@@ -76,14 +76,14 @@ Route::middleware('auth')->group(function () {
     // Logout
     Route::post('/logout', [RoleLoginController::class, 'logout'])->name('logout');
 
-    // Admin CRUD
-    Route::prefix('admin')->group(function () {
+   // Admin CRUD
+    Route::prefix('admin')->name('admin.')->group(function () {
 
-        // Teachers - custom routes BEFORE resource
+        // Teachers
         Route::get('teachers/filter', [TeacherController::class, 'filter'])->name('teachers.filter');
         Route::resource('teachers', TeacherController::class);
 
-        // Classes - custom routes BEFORE resource
+        // Classes
         Route::get('classes/delete-list', [ClassController::class, 'deleteList'])->name('classes.delete-list');
         Route::resource('classes', ClassController::class);
 
@@ -128,21 +128,19 @@ Route::middleware('auth')->group(function () {
 
     // Student routes
     // Student routes
-Route::prefix('student')->name('student.')->group(function () {
-    Route::get('classes', fn() => view('student.classes.index'))->name('classes.index');
+    Route::prefix('student')->name('student.')->group(function () {
+        Route::get('classes', fn() => view('student.classes.index'))->name('classes.index');
 
-    Route::get('attendance', [StudentController::class, 'attendance'])->name('attendance');
+        Route::get('attendance', [StudentController::class, 'attendance'])->name('attendance');
 
-    Route::get('scores', fn() => view('student.grade_report.index'))->name('scores');
-    Route::get('schedule', fn() => view('student.schedule.index'))->name('schedule');
-    Route::get('grades', [App\Http\Controllers\Student\GradeReportController::class, 'index'])->name('grades');
+        Route::get('scores', [App\Http\Controllers\Student\GradeReportController::class, 'index'])->name('scores');
+        Route::get('schedule', fn() => view('student.schedule.index'))->name('schedule');
+        Route::get('grades', [App\Http\Controllers\Student\GradeReportController::class, 'index'])->name('grades');
 
-    Route::get('setting', [StudentSettingController::class, 'index'])->name('setting.index');
-    Route::put('setting', [StudentSettingController::class, 'update'])->name('setting.update');
-});
-        // Settings routes
         Route::get('setting', [StudentSettingController::class, 'index'])->name('setting.index');
         Route::put('setting', [StudentSettingController::class, 'update'])->name('setting.update');
+    });
+
 
 
     // Parent routes

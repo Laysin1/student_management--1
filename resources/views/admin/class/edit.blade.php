@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-6 max-w-3xl">
   <div class="flex items-center gap-3 mb-6">
-    <a href="{{ route('classes.index') }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">← Back</a>
+    <a href="{{ route('admin.classes.index') }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">← Back</a>
   </div>
 
   <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Edit Class</h1>
@@ -19,7 +19,7 @@
     </div>
   @endif
 
-  <form action="{{ route('classes.update', $class->id) }}" method="POST" enctype="multipart/form-data" class="bg-white shadow rounded-lg p-6 space-y-5">
+  <form action="{{ route('admin.classes.update', $class->id) }}" method="POST" enctype="multipart/form-data" class="bg-white shadow rounded-lg p-6 space-y-5">
     @csrf
     @method('PUT')
 
@@ -49,7 +49,7 @@
 
     <div class="flex gap-3 pt-2">
       <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold">Save</button>
-      <a href="{{ route('classes.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold">Cancel</a>
+      <a href="{{ route('admin.classes.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold">Cancel</a>
     </div>
   </form>
 </div>

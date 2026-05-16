@@ -59,7 +59,7 @@ class ClassController extends Controller
             Schedule::where('id', $validated['schedule_id'])->update(['class_id' => $class->id]);
         }
 
-        return redirect()->route('classes.index')->with('success', 'Class added successfully!');
+        return redirect()->route('admin.classes.index')->with('success', 'Class added successfully!');
     }
 
     public function show(SchoolClass $class)
@@ -105,7 +105,7 @@ class ClassController extends Controller
             Schedule::where('id', $validated['schedule_id'])->update(['class_id' => $class->id]);
         }
 
-        return redirect()->route('classes.index')->with('success', 'Class updated successfully!');
+        return redirect()->route('admin.classes.index')->with('success', 'Class updated successfully!');
     }
 
     public function destroy(SchoolClass $class)
@@ -113,7 +113,7 @@ class ClassController extends Controller
         // Unlink schedules before deleting
         Schedule::where('class_id', $class->id)->update(['class_id' => null]);
         $class->delete();
-        return redirect()->route('classes.index')->with('success', 'Class deleted successfully!');
+        return redirect()->route('admin.classes.index')->with('success', 'Class deleted successfully!');
     }
 
     public function deleteList()

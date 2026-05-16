@@ -98,7 +98,7 @@
             <div id="profile-edit" class="hidden">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">Edit Profile</h3>
 
-                <form method="POST" action="{{ route('setting.update') }}" class="space-y-5">
+                <form method="POST" action="{{ route('admin.setting.update') }}" class="space-y-5">
                     @csrf
                     @method('PUT')
 

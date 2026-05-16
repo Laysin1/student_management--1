@@ -5,18 +5,18 @@
 
     <!-- Header Actions -->
     <div class="flex items-center justify-between mb-6">
-        <a href="{{ route('teachers.index') }}"
+        <a href="{{ route('admin.teachers.index') }}"
            class="inline-flex items-center text-gray-600 hover:text-blue-600 font-semibold">
             ← Back
         </a>
 
         <div class="flex gap-2">
-            <a href="{{ route('teachers.edit', $teacher->id) }}"
+            <a href="{{ route('admin.teachers.edit', $teacher->id) }}"
                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-semibold">
                 Edit
             </a>
 
-            <form action="{{ route('teachers.destroy', $teacher->id) }}"
+            <form action="{{ route('admin.teachers.destroy', $teacher->id) }}"
                   method="POST"
                   onsubmit="return confirm('Delete this teacher?');">
                 @csrf

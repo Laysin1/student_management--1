@@ -4,7 +4,7 @@
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">Schedules</h1>
-    <a href="{{ route('schedules.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold">
+    <a href="{{ route('admin.schedules.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold">
       Add Schedule
     </a>
   </div>
@@ -68,9 +68,9 @@
               </td>
               <td class="px-6 py-4 text-center">
                 <div class="flex justify-center gap-2">
-                  <a href="{{ route('schedules.show', $schedule->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
-                  <a href="{{ route('schedules.edit', $schedule->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">Edit</a>
-                  <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST" onsubmit="return confirm('Delete this schedule?');" class="inline">
+                  <a href="{{ route('admin.schedules.show', $schedule->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">View</a>
+                  <a href="{{ route('admin.schedules.edit', $schedule->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">Edit</a>
+                  <form action="{{ route('admin.schedules.destroy', $schedule->id) }}" method="POST" onsubmit="return confirm('Delete this schedule?');" class="inline">
                     @csrf @method('DELETE')
                     <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">Delete</button>
                   </form>
@@ -80,7 +80,7 @@
           @empty
             <tr>
               <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                No schedules found. <a href="{{ route('schedules.create') }}" class="text-blue-600 hover:underline">Create one</a>
+                No schedules found. <a href="{{ route('admin.schedules.create') }}" class="text-blue-600 hover:underline">Create one</a>
               </td>
             </tr>
           @endforelse

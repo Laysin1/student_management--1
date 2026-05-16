@@ -108,13 +108,13 @@ class ParentController extends Controller
             $parent->students()->sync($validated['student_ids']);
         }
 
-        return redirect()->route('parents.index')->with('success', 'Parent updated successfully');
+        return redirect()->route('admin.parents.index')->with('success', 'Parent updated successfully');
     }
 
     public function destroy(ParentUser $parent)
     {
         $parent->user->delete();
         $parent->delete();
-        return redirect()->route('parents.index')->with('success', 'Parent deleted successfully');
+        return redirect()->route('admin.parents.index')->with('success', 'Parent deleted successfully');
     }
 }

@@ -16,7 +16,7 @@
         @endif
 
         <div class="bg-white rounded-lg shadow p-6">
-            <form action="{{ route('parents.update', $parent->id) }}" method="POST">
+            <form action="{{ route('admin.parents.update', $parent->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -60,7 +60,7 @@
                     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
                         Update Parent
                     </button>
-                    <a href="{{ route('parents.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">
+                    <a href="{{ route('admin.parents.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">
                         Cancel
                     </a>
                 </div>

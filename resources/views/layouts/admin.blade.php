@@ -19,31 +19,36 @@
         </div>
 
         <nav class="flex-1 p-4 space-y-2">
-            <a href="{{ route('dashboard.admin') }}"
-               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('dashboard/admin*') ? 'bg-blue-800' : '' }}">
-                Dashboard
-            </a>
-            <a href="{{ route('teachers.index') }}"
-               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/teachers*') ? 'bg-blue-800' : '' }}">
-                Teachers
-            </a>
-            <a href="{{ route('classes.index') }}"
-               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/class*') ? 'bg-blue-800' : '' }}">
-                Class
-            </a>
-            <a href="{{ route('schedules.index') }}"
-               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/schedule*') ? 'bg-blue-800' : '' }}">
-                Schedule
-            </a>
-            <a href="{{ route('parents.index') }}"
-               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/parents*') ? 'bg-blue-800' : '' }}">
-                Parents
-            </a>
-            <a href="{{ route('setting.index') }}"
-               class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/setting*') ? 'bg-blue-800' : '' }}">
-                Setting
-            </a>
-        </nav>
+    <a href="{{ route('dashboard.admin') }}"
+       class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('dashboard/admin*') ? 'bg-blue-800' : '' }}">
+        Dashboard
+    </a>
+
+    <a href="{{ route('admin.teachers.index') }}"
+       class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/teachers*') ? 'bg-blue-800' : '' }}">
+        Teachers
+    </a>
+
+    <a href="{{ route('admin.classes.index') }}"
+       class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/classes*') ? 'bg-blue-800' : '' }}">
+        Class
+    </a>
+
+    <a href="{{ route('admin.schedules.index') }}"
+       class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/schedules*') ? 'bg-blue-800' : '' }}">
+        Schedule
+    </a>
+
+    <a href="{{ route('admin.parents.index') }}"
+       class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/parents*') ? 'bg-blue-800' : '' }}">
+        Parents
+    </a>
+
+    <a href="{{ route('admin.setting.update') }}"
+       class="block px-4 py-3 rounded-lg hover:bg-blue-800 {{ request()->is('admin/setting*') ? 'bg-blue-800' : '' }}">
+        Setting
+    </a>
+</nav>
     </aside>
 
     <!-- PAGE CONTENT -->

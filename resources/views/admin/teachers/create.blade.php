@@ -25,7 +25,7 @@
         </div>
     @endif
 
-    <form id="teacherForm" action="{{ route('teachers.store') }}" method="POST" class="bg-white shadow rounded-lg p-6 space-y-5">
+    <form id="teacherForm" action="{{ route('admin.teachers.store') }}" method="POST" class="bg-white shadow rounded-lg p-6 space-y-5">
         @csrf
 
         <!-- Full Name -->
@@ -184,7 +184,7 @@
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold">
                 Add
             </button>
-            <a href="{{ route('teachers.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold">
+            <a href="{{ route('admin.teachers.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold">
                 Cancel
             </a>
         </div>

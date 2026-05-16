@@ -90,7 +90,7 @@ public function store(Request $request)
         }
 
         DB::commit();
-        return redirect()->route('teachers.index')->with('success', 'Teacher created successfully');
+        return redirect()->route('admin.teachers.index')->with('success', 'Teacher created successfully');
     } catch (Exception $e) {
         DB::rollBack();
         return back()->withErrors(['error' => 'Failed to create teacher: ' . $e->getMessage()]);
@@ -169,7 +169,7 @@ public function store(Request $request)
         if ($user) {
             $user->delete();
         }
-        return redirect()->route('teachers.index')->with('success', 'Teacher deleted.');
+        return redirect()->route('admin.teachers.index')->with('success', 'Teacher deleted.');
     }
 
     // AJAX filter endpoint for index page

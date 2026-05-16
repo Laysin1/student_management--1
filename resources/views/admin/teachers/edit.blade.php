@@ -13,7 +13,7 @@
                 </p>
             </div>
 
-            <a href="{{ route('teachers.index') }}"
+            <a href="{{ route('admin.teachers.index') }}"
                class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-3 rounded-xl font-semibold text-center">
                 Back to Teachers
             </a>
@@ -54,7 +54,7 @@
 
     <!-- Form -->
     <form id="teacherForm"
-          action="{{ route('teachers.update', $teacher->id) }}"
+          action="{{ route('admin.teachers.update', $teacher->id) }}"
           method="POST"
           class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-8">
 
@@ -260,7 +260,7 @@
         <!-- Actions -->
         <div class="flex justify-end gap-3 pt-6 border-t">
 
-            <a href="{{ route('teachers.index') }}"
+            <a href="{{ route('admin.teachers.index') }}"
                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold">
                 Cancel
             </a>

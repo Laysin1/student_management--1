@@ -18,7 +18,7 @@
                 </p>
             </div>
 
-            <a href="{{ route('students.create') }}"
+            <a href="{{ route('admin.students.create') }}"
                class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-3 rounded-xl font-semibold shadow text-center">
                 + Add Student
             </a>
@@ -31,7 +31,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
 
         <form method="GET"
-              action="{{ route('students.index') }}"
+              action="{{ route('admin.students.index') }}"
               class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
             <!-- Search -->
@@ -92,7 +92,7 @@
 
                 @if(request('search') || request('class_id'))
 
-                    <a href="{{ route('students.index') }}"
+                    <a href="{{ route('admin.students.index') }}"
                        class="w-full text-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-3 rounded-xl font-semibold">
                         Reset
                     </a>
@@ -265,17 +265,17 @@
 
                                 <div class="flex justify-center gap-2">
 
-                                    <a href="{{ route('students.show', $student->id) }}"
+                                    <a href="{{ route('admin.students.show', $student->id) }}"
                                        class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-lg text-sm font-semibold">
                                         View
                                     </a>
 
-                                    <a href="{{ route('students.edit', $student->id) }}"
+                                    <a href="{{ route('admin.students.edit', $student->id) }}"
                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-semibold">
                                         Edit
                                     </a>
 
-                                    <form action="{{ route('students.destroy', $student->id) }}"
+                                    <form action="{{ route('admin.students.destroy', $student->id) }}"
                                           method="POST"
                                           class="inline"
                                           onsubmit="return confirm('Delete this student?');">

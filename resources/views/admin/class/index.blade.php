@@ -13,7 +13,7 @@
                 </p>
             </div>
 
-            <a href="{{ route('classes.create') }}"
+            <a href="{{ route('admin.classes.create') }}"
                class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-3 rounded-xl font-semibold shadow text-center">
                 + Add Class
             </a>
@@ -68,7 +68,7 @@
                 Start by creating your first class.
             </p>
 
-            <a href="{{ route('classes.create') }}"
+            <a href="{{ route('admin.classes.create') }}"
                class="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold">
                 + Add Class
             </a>
@@ -160,17 +160,17 @@
 
                                 <div class="grid grid-cols-3 gap-2">
 
-                                    <a href="{{ route('students.index', ['class_id' => $firstId]) }}"
+                                    <a href="{{ route('admin.students.index', ['class_id' => $firstId]) }}"
                                        class="text-center bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-sm font-semibold">
                                         View
                                     </a>
 
-                                    <a href="{{ route('classes.edit', $firstId) }}"
+                                    <a href="{{ route('admin.classes.edit', $firstId) }}"
                                        class="text-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-sm font-semibold">
                                         Edit
                                     </a>
 
-                                    <a href="{{ route('classes.delete-list') }}"
+                                    <a href="{{ route('admin.classes.delete-list') }}"
                                        class="text-center bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl text-sm font-semibold">
                                         Delete
                                     </a>
@@ -179,7 +179,7 @@
 
                             @else
 
-                                <a href="{{ route('classes.create') }}"
+                                <a href="{{ route('admin.classes.create') }}"
                                    class="block text-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-semibold">
                                     Add Class
                                 </a>

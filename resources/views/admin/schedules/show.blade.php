@@ -5,14 +5,14 @@
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-        <a href="{{ route('schedules.index') }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">
+        <a href="{{ route('admin.schedules.index') }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7M3 12h18"/>
             </svg>
             Back
         </a>
 
-        <a href="{{ route('schedules.edit', $schedule->id) }}"
+        <a href="{{ route('admin.schedules.edit', $schedule->id) }}"
            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold">
             Edit
         </a>

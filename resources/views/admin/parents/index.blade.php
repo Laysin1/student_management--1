@@ -15,7 +15,7 @@
             </p>
         </div>
 
-        <a href="{{ route('parents.create') }}"
+        <a href="{{ route('admin.parents.create') }}"
            class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm">
             + Add Parent
         </a>
@@ -30,7 +30,7 @@
 
     <!-- Search -->
     <form method="GET"
-          action="{{ route('parents.index') }}"
+          action="{{ route('admin.parents.index') }}"
           class="bg-white rounded-xl shadow border border-gray-100 p-4 mb-5">
 
         <div class="flex flex-col md:flex-row gap-3">
@@ -47,7 +47,7 @@
             </button>
 
             @if(request('search'))
-                <a href="{{ route('parents.index') }}"
+                <a href="{{ route('admin.parents.index') }}"
                    class="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded-lg font-semibold text-center">
                     Clear
                 </a>
@@ -148,12 +148,12 @@
 
                                 <div class="flex items-center justify-center gap-3">
 
-                                    <a href="{{ route('parents.edit', $parent->id) }}"
+                                    <a href="{{ route('admin.parents.edit', $parent->id) }}"
                                        class="text-blue-600 hover:text-blue-800 font-semibold text-sm">
                                         Edit
                                     </a>
 
-                                    <form action="{{ route('parents.destroy', $parent->id) }}"
+                                    <form action="{{ route('admin.parents.destroy', $parent->id) }}"
                                           method="POST"
                                           onsubmit="return confirm('Delete this parent?');">
 

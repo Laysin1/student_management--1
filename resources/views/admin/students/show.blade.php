@@ -4,7 +4,7 @@
 <div class="container mx-auto px-4 py-6 max-w-5xl">
 
   <div class="flex items-center justify-between mb-6">
-    <a href="{{ route('students.index', ['class_id' => $student->class_id]) }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">
+    <a href="{{ route('admin.students.index', ['class_id' => $student->class_id]) }}" class="inline-flex items-center text-gray-600 hover:text-blue-600">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7M3 12h18"/>
       </svg>
@@ -12,12 +12,12 @@
     </a>
 
     <div class="flex gap-2">
-      <a href="{{ route('students.edit', $student->id) }}"
+      <a href="{{ route('admin.students.edit', $student->id) }}"
          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold">
         Edit
       </a>
 
-      <form action="{{ route('students.destroy', $student->id) }}" method="POST"
+      <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST"
             onsubmit="return confirm('Delete this student?');">
         @csrf
         @method('DELETE')
