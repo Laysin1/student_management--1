@@ -44,10 +44,6 @@
                 <h2 class="text-2xl font-bold text-gray-900">
                     {{ $teacher->first_name }} {{ $teacher->last_name }}
                 </h2>
-
-                <p class="text-gray-500">
-                    Teacher ID: #{{ $teacher->id }}
-                </p>
             </div>
         </div>
     </div>
@@ -121,7 +117,7 @@
                     <input type="tel"
                            name="phone_number"
                            value="{{ old('phone_number', $teacher->phone_number) }}"
-                           placeholder="+855 000 000 000"
+                           placeholder="0 000 000 00"
                            pattern="[+0-9\s\-()]{7,}"
                            class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 
@@ -207,26 +203,17 @@
                     </select>
                 </div>
 
-                <!-- Add Class -->
+                <!-- Searchable Add Class -->
                 <div>
                     <label class="font-semibold text-gray-800 mb-2 block">
                         Add Class
                     </label>
 
                     <div class="flex gap-2">
-                        <select id="class_select"
-                                class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select class</option>
-
-                            @foreach($classes ?? [] as $class)
-                                <option value="{{ $class->id }}">
-                                    {{ $class->name }}
-                                    @if($class->grade_level)
-                                        ({{ $class->grade_level }})
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <input list="class_list"
+                               id="class_search"
+                               placeholder="Search class..."
+                               class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 
                         <button type="button"
                                 id="add_class_btn"
@@ -234,6 +221,15 @@
                             Add
                         </button>
                     </div>
+
+                    <datalist id="class_list">
+                        @foreach($classes ?? [] as $class)
+                            <option
+                                data-id="{{ $class->id }}"
+                                value="{{ $class->name }}{{ $class->grade_level ? ' (' . $class->grade_level . ')' : '' }}">
+                            </option>
+                        @endforeach
+                    </datalist>
                 </div>
 
             </div>
@@ -277,7 +273,7 @@
 </div>
 
 <script>
-    const classSelect = document.getElementById('class_select');
+    const classSearch = document.getElementById('class_search');
     const addClassBtn = document.getElementById('add_class_btn');
     const selectedBox = document.getElementById('selected_classes_box');
     const selectedInputs = document.getElementById('selected_classes_inputs');
@@ -287,9 +283,9 @@
 
     const classMap = {};
 
-    Array.from(classSelect.options).forEach(option => {
-        if (option.value) {
-            classMap[option.value] = option.text;
+    document.querySelectorAll('#class_list option').forEach(option => {
+        if (option.dataset.id) {
+            classMap[option.dataset.id] = option.value;
         }
     });
 
@@ -307,7 +303,23 @@
         }
     }
 
+    function findClassId(text) {
+        const options = document.querySelectorAll('#class_list option');
+
+        for (const option of options) {
+            if (option.value === text) {
+                return option.dataset.id;
+            }
+        }
+
+        return null;
+    }
+
     function displayClass(classId, className) {
+        if (!className) {
+            className = 'Class ' + classId;
+        }
+
         const badge = document.createElement('div');
 
         badge.className = "flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-full text-sm font-semibold";
@@ -336,18 +348,22 @@
     initialClassIds.forEach(function(classId) {
         if (!classId) return;
 
-        selectedClasses.push(String(classId));
-        displayClass(String(classId), classMap[classId] || 'Class ' + classId);
+        const id = String(classId);
+
+        if (!selectedClasses.includes(id)) {
+            selectedClasses.push(id);
+            displayClass(id, classMap[id] || 'Class ' + id);
+        }
     });
 
     addClassBtn.addEventListener('click', function(e) {
         e.preventDefault();
 
-        const classId = classSelect.value;
-        const classText = classSelect.options[classSelect.selectedIndex].text;
+        const classText = classSearch.value.trim();
+        const classId = findClassId(classText);
 
         if (!classId) {
-            alert('Please select a class');
+            alert('Please select a valid class from the list');
             return;
         }
 
@@ -359,7 +375,7 @@
         selectedClasses.push(String(classId));
         displayClass(String(classId), classText);
 
-        classSelect.value = "";
+        classSearch.value = "";
         updateEmptyText();
     });
 

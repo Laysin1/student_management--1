@@ -53,7 +53,7 @@
           <span class="font-semibold">Class:</span> {{ $student->class->name ?? '—' }}
 
           @if(optional($student->class)->grade_level)
-            • <span class="font-semibold">Grade:</span> {{ $student->class->grade_level }}
+            • <span class="font-semibold"></span> {{ $student->class->grade_level }}
           @endif
         </p>
       </div>
@@ -102,10 +102,10 @@
           <div class="text-gray-800 font-medium">{{ $student->parent_number ?? '—' }}</div>
         </div>
 
-        <div>
+        {{-- <div>
           <div class="text-sm text-gray-500">Address</div>
           <div class="text-gray-800 font-medium">{{ $student->address ?? '—' }}</div>
-        </div>
+        </div> --}}
       </div>
     </div>
 

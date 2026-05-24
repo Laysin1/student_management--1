@@ -3,7 +3,6 @@
 @section('content')
 <div class="container mx-auto px-6 py-8 max-w-4xl">
 
-    <!-- Header -->
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Add Schedule</h1>
@@ -18,11 +17,9 @@
         </a>
     </div>
 
-    <!-- Error Box -->
     @if ($errors->any())
         <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl mb-6">
             <h3 class="font-bold mb-2">Please fix these errors:</h3>
-
             <ul class="list-disc pl-5 space-y-1">
                 @foreach ($errors->all() as $error)
                     <li class="text-sm">{{ $error }}</li>
@@ -31,7 +28,6 @@
         </div>
     @endif
 
-    <!-- Form Card -->
     <form action="{{ route('admin.schedules.store') }}"
           method="POST"
           enctype="multipart/form-data"
@@ -39,43 +35,31 @@
 
         @csrf
 
-        <!-- Title -->
         <div>
-            <label class="font-semibold text-gray-800 mb-2 block">
-                Schedule Title
-            </label>
-
+            <label class="font-semibold text-gray-800 mb-2 block">Schedule Title</label>
             <input type="text"
                    name="title"
                    value="{{ old('title') }}"
                    placeholder="Example: Grade 11 Weekly Schedule"
                    class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-
-            <p class="text-xs text-gray-400 mt-1">
-                Optional. Leave empty if you do not want a title.
-            </p>
+            <p class="text-xs text-gray-400 mt-1">Optional. Leave empty if you do not want a title.</p>
         </div>
 
-        <!-- Schedule Type -->
         <div>
             <label class="font-semibold text-gray-800 mb-3 block">
                 Schedule For <span class="text-red-500">*</span>
             </label>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                 <label class="border rounded-2xl p-5 cursor-pointer hover:border-blue-500 transition flex items-start gap-3">
                     <input type="radio"
                            name="type"
                            value="class"
                            class="mt-1"
                            {{ old('type', 'class') === 'class' ? 'checked' : '' }}>
-
                     <div>
                         <h3 class="font-bold text-gray-900">Class Schedule</h3>
-                        <p class="text-sm text-gray-500">
-                            Upload a schedule for one class.
-                        </p>
+                        <p class="text-sm text-gray-500">Upload a schedule for one class.</p>
                     </div>
                 </label>
 
@@ -85,66 +69,57 @@
                            value="teacher"
                            class="mt-1"
                            {{ old('type') === 'teacher' ? 'checked' : '' }}>
-
                     <div>
                         <h3 class="font-bold text-gray-900">Teacher Schedule</h3>
-                        <p class="text-sm text-gray-500">
-                            Upload a schedule for one teacher.
-                        </p>
+                        <p class="text-sm text-gray-500">Upload a schedule for one teacher.</p>
                     </div>
                 </label>
-
             </div>
         </div>
 
-        <!-- Class Select -->
         <div id="classSelect">
             <label class="font-semibold text-gray-800 mb-2 block">
                 Select Class <span class="text-red-500">*</span>
             </label>
 
-            <select name="class_id"
-                    id="class_id"
-                    class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Choose a class</option>
+            <input list="class_list"
+                   id="class_search"
+                   placeholder="Search class..."
+                   class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 
+            <input type="hidden" name="class_id" id="class_id" value="{{ old('class_id') }}">
+
+            <datalist id="class_list">
                 @foreach(($classes ?? []) as $class)
-                    <option value="{{ $class->id }}"
-                        {{ (string) old('class_id') === (string) $class->id ? 'selected' : '' }}>
-                        {{ $class->name }}
-                        @if($class->grade_level)
-                            ({{ $class->grade_level }})
-                        @endif
+                    <option data-id="{{ $class->id }}"
+                            value="{{ $class->name }}{{ $class->grade_level ? ' (' . $class->grade_level . ')' : '' }}">
                     </option>
                 @endforeach
-            </select>
+            </datalist>
         </div>
 
-        <!-- Teacher Select -->
         <div id="teacherSelect" class="hidden">
             <label class="font-semibold text-gray-800 mb-2 block">
                 Select Teacher <span class="text-red-500">*</span>
             </label>
 
-            <select name="teacher_id"
-                    id="teacher_id"
-                    disabled
-                    class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                <option value="">Choose a teacher</option>
+            <input list="teacher_list"
+                   id="teacher_search"
+                   placeholder="Search teacher..."
+                   disabled
+                   class="border border-gray-300 rounded-xl px-4 py-3 w-full focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
 
+            <input type="hidden" name="teacher_id" id="teacher_id" value="{{ old('teacher_id') }}" disabled>
+
+            <datalist id="teacher_list">
                 @foreach(($teachers ?? []) as $teacher)
-                    <option value="{{ $teacher->id }}"
-                        {{ (string) old('teacher_id') === (string) $teacher->id ? 'selected' : '' }}>
-                        {{ $teacher->first_name }} {{ $teacher->last_name }}
-                        @if(optional($teacher->subject)->name)
-                            — {{ optional($teacher->subject)->name }}
-                        @endif
+                    <option data-id="{{ $teacher->id }}"
+                            value="{{ $teacher->first_name }} {{ $teacher->last_name }}{{ optional($teacher->subject)->name ? ' — ' . optional($teacher->subject)->name : '' }}">
                     </option>
                 @endforeach
-            </select>
+            </datalist>
         </div>
 
-        <!-- Image Upload -->
         <div>
             <label class="font-semibold text-gray-800 mb-2 block">
                 Schedule Image <span class="text-red-500">*</span>
@@ -164,21 +139,15 @@
             </div>
         </div>
 
-        <!-- Preview -->
         <div id="previewBox" class="hidden">
-            <label class="font-semibold text-gray-800 mb-2 block">
-                Image Preview
-            </label>
-
+            <label class="font-semibold text-gray-800 mb-2 block">Image Preview</label>
             <img id="imagePreview"
                  src=""
                  alt="Schedule Preview"
                  class="w-full max-h-[400px] object-contain border rounded-xl bg-gray-50">
         </div>
 
-        <!-- Buttons -->
         <div class="flex items-center justify-end gap-3 pt-4 border-t">
-
             <a href="{{ route('admin.schedules.index') }}"
                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold">
                 Cancel
@@ -188,11 +157,8 @@
                     class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold">
                 Save Schedule
             </button>
-
         </div>
-
     </form>
-
 </div>
 
 <script>
@@ -201,8 +167,30 @@
     const classBox = document.getElementById('classSelect');
     const teacherBox = document.getElementById('teacherSelect');
 
-    const classSelect = document.getElementById('class_id');
-    const teacherSelect = document.getElementById('teacher_id');
+    const classSearch = document.getElementById('class_search');
+    const teacherSearch = document.getElementById('teacher_search');
+
+    const classIdInput = document.getElementById('class_id');
+    const teacherIdInput = document.getElementById('teacher_id');
+
+    function setHiddenId(searchInput, hiddenInput, listId) {
+        const options = document.querySelectorAll(`#${listId} option`);
+        hiddenInput.value = '';
+
+        options.forEach(option => {
+            if (option.value === searchInput.value) {
+                hiddenInput.value = option.dataset.id;
+            }
+        });
+    }
+
+    classSearch.addEventListener('input', function () {
+        setHiddenId(classSearch, classIdInput, 'class_list');
+    });
+
+    teacherSearch.addEventListener('input', function () {
+        setHiddenId(teacherSearch, teacherIdInput, 'teacher_list');
+    });
 
     function updateScheduleType() {
         const selectedType = document.querySelector('input[name="type"]:checked').value;
@@ -211,16 +199,26 @@
             classBox.classList.remove('hidden');
             teacherBox.classList.add('hidden');
 
-            classSelect.disabled = false;
-            teacherSelect.disabled = true;
-            teacherSelect.value = '';
+            classSearch.disabled = false;
+            classIdInput.disabled = false;
+
+            teacherSearch.disabled = true;
+            teacherIdInput.disabled = true;
+
+            teacherSearch.value = '';
+            teacherIdInput.value = '';
         } else {
             teacherBox.classList.remove('hidden');
             classBox.classList.add('hidden');
 
-            teacherSelect.disabled = false;
-            classSelect.disabled = true;
-            classSelect.value = '';
+            teacherSearch.disabled = false;
+            teacherIdInput.disabled = false;
+
+            classSearch.disabled = true;
+            classIdInput.disabled = true;
+
+            classSearch.value = '';
+            classIdInput.value = '';
         }
     }
 

@@ -43,6 +43,6 @@ class SettingController extends Controller
 
         $user->save(); // ✅ save to database
 
-        return redirect()->route('setting.index')->with('success', 'Profile updated successfully.');
+        return redirect()->route('admin.setting.index')->with('success', 'Profile updated successfully.');
     }
 }

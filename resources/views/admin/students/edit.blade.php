@@ -85,8 +85,11 @@
         <label class="font-semibold text-gray-800 mb-2 block">
           Date of Birth <span class="text-red-500">*</span>
         </label>
-        <input type="date" name="date_of_birth" value="{{ old('date_of_birth', $student->date_of_birth) }}"
-               class="border border-gray-300 rounded px-3 py-2 w-full" required>
+        <input type="date"
+       name="date_of_birth"
+       value="{{ old('date_of_birth', optional($student->date_of_birth)->format('Y-m-d')) }}"
+       class="border border-gray-300 rounded px-3 py-2 w-full"
+       required>
       </div>
 
       <div>

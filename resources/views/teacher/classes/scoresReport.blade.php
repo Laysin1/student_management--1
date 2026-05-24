@@ -70,7 +70,7 @@
 
                     @foreach($classes as $class)
                         <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                            Grade {{ $class->grade_level }} - {{ $class->name }}
+                             {{ $class->grade_level }} - {{ $class->name }}
                         </option>
                     @endforeach
                 </select>
@@ -143,7 +143,7 @@
             <div class="bg-white rounded-xl shadow border border-gray-100 p-5">
                 <div class="text-gray-500 text-sm">Class</div>
                 <div class="mt-1 text-xl font-bold text-blue-700">
-                    {{ $selectedClass ? 'Grade ' . $selectedClass->grade_level . ' - ' . $selectedClass->name : '—' }}
+                    {{ $selectedClass ? ' ' . $selectedClass->grade_level . ' - ' . $selectedClass->name : '—' }}
                 </div>
             </div>
 

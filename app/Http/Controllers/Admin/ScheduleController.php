@@ -10,11 +10,42 @@ use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
 {
-    public function index()
-    {
-        $schedules = Schedule::with(['class','teacher'])->orderByDesc('id')->paginate(15);
-        return view('admin.schedules.index', compact('schedules'));
+    public function index(Request $request)
+{
+    $query = Schedule::with(['class', 'teacher.subject']);
+
+    if ($search = $request->get('search')) {
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhereHas('class', function ($cq) use ($search) {
+                  $cq->where('name', 'like', "%{$search}%")
+                     ->orWhere('grade_level', 'like', "%{$search}%");
+              })
+              ->orWhereHas('teacher', function ($tq) use ($search) {
+                  $tq->where('first_name', 'like', "%{$search}%")
+                     ->orWhere('last_name', 'like', "%{$search}%");
+              })
+              ->orWhereHas('teacher.subject', function ($sq) use ($search) {
+                  $sq->where('name', 'like', "%{$search}%");
+              });
+        });
     }
+
+    if ($request->get('type') === 'class') {
+        $query->whereNotNull('class_id');
+    }
+
+    if ($request->get('type') === 'teacher') {
+        $query->whereNotNull('teacher_id');
+    }
+
+    $schedules = $query
+        ->orderByDesc('id')
+        ->paginate(15)
+        ->withQueryString();
+
+    return view('admin.schedules.index', compact('schedules'));
+}
 
     public function create()
     {
@@ -49,8 +80,10 @@ class ScheduleController extends Controller
         ]);
 
         return redirect()
-            ->route('schedules.index')
-            ->with('success', 'Schedule uploaded successfully!');
+    ->route('admin.schedules.index', [
+        'type' => $validated['type']
+    ])
+    ->with('success', 'Schedule uploaded successfully!');
 
     } catch (\Exception $e) {
         return back()
@@ -100,12 +133,23 @@ class ScheduleController extends Controller
 
         $schedule->save();
 
-        return redirect()->route('schedules.index')->with('success','Schedule updated.');
+        return redirect()
+    ->route('admin.schedules.index', [
+        'type' => $schedule->type
+    ])
+    ->with('success','Schedule updated.');
     }
 
     public function destroy(Schedule $schedule)
-    {
-        $schedule->delete();
-        return redirect()->route('schedules.index')->with('success','Schedule deleted.');
-    }
+{
+    $type = $schedule->type;
+
+    $schedule->delete();
+
+    return redirect()
+        ->route('admin.schedules.index', [
+            'type' => $type
+        ])
+        ->with('success', 'Schedule deleted.');
+}
 }

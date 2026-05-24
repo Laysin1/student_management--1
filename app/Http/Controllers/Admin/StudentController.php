@@ -60,7 +60,9 @@ public function update(Request $request, Student $student)
     $validated = $request->validate([
         'student_id'    => 'nullable|string|max:50|unique:students,student_id,' . $student->id,
         'first_name'    => 'required|string|max:100',
-        'last_name'     => 'nullable|string|max:100',
+        'last_name'     => 'required|string|max:100',
+        'email'         => 'required|email|unique:users,email,' . $student->user_id,
+        'password'      => 'nullable|min:8',
         'date_of_birth' => 'required|date|before:today',
         'phone_number'  => 'nullable|string|max:30',
         'parent_number' => 'nullable|string|max:30',
@@ -69,14 +71,29 @@ public function update(Request $request, Student $student)
         'profile_photo' => 'nullable|image|max:2048',
     ]);
 
+    if ($student->user) {
+        $student->user->update([
+            'name' => $validated['first_name'] . ' ' . $validated['last_name'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+        ]);
+
+        if (!empty($validated['password'])) {
+            $student->user->update([
+                'password' => Hash::make($validated['password']),
+            ]);
+        }
+    }
+
     $student->student_id    = $validated['student_id'] ?? $student->student_id;
     $student->first_name    = $validated['first_name'];
-    $student->last_name     = $validated['last_name'] ?? $student->last_name;
+    $student->last_name     = $validated['last_name'];
     $student->date_of_birth = $validated['date_of_birth'];
-    $student->phone_number  = $validated['phone_number'] ?? $student->phone_number;
-    $student->parent_number = $validated['parent_number'] ?? $student->parent_number;
-    $student->class_id      = $validated['class_id'] ?? $student->class_id;
-    $student->gender        = $validated['gender'] ?? $student->gender;
+    $student->phone_number  = $validated['phone_number'] ?? null;
+    $student->parent_number = $validated['parent_number'] ?? null;
+    $student->class_id      = $validated['class_id'] ?? null;
+    $student->gender        = $validated['gender'] ?? null;
 
     if ($request->hasFile('profile_photo')) {
         $path = $request->file('profile_photo')->store('profile-photos', 'public');
@@ -85,7 +102,9 @@ public function update(Request $request, Student $student)
 
     $student->save();
 
-    return redirect()->route('students.show', $student->id)->with('success', 'Student updated successfully.');
+    return redirect()->route('admin.students.index', [
+        'class_id' => $student->class_id
+    ])->with('success', 'Student updated successfully.');
 }
 public function store(Request $request)
 {
@@ -125,17 +144,21 @@ public function store(Request $request)
         // Create student record
         Student::create([
             'user_id' => $user->id,
-            'student_id' => $validated['student_id'],
-            'date_of_birth' => $validated['date_of_birth'],
-            'phone_number' => $validated['phone_number'],
-            'parent_number' => $validated['parent_number'],
-            'class_id' => $validated['class_id'],
-            'gender' => $validated['gender'],
-            'profile_photo' => $photoPath,
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'student_id' => $validated['student_id'] ?? null,
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'phone_number' => $validated['phone_number'] ?? null,
+            'parent_number' => $validated['parent_number'] ?? null,
+            'class_id' => $validated['class_id'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'profile_photo_path' => $photoPath,
         ]);
 
         DB::commit();
-        return redirect()->route('admin.students.index')->with('success', 'Student created successfully');
+        return redirect()->route('admin.students.index', [
+    'class_id' => $validated['class_id']
+])->with('success', 'Student created successfully');
     } catch (Exception $e) {
         DB::rollBack();
         return back()->withErrors(['error' => 'Failed to create student: ' . $e->getMessage()]);

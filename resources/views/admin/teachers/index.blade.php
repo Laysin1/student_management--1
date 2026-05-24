@@ -107,21 +107,19 @@
                         <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
 
                             <!-- Teacher -->
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 min-w-[250px]">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+
+                                    <div class="w-11 h-11 min-w-[44px] h-[44px] rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
                                         {{ $initials }}
                                     </div>
 
-                                    <div>
-                                        <p class="font-bold text-gray-900">
+                                    <div class="overflow-hidden">
+                                        <p class="font-bold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
                                             {{ $t->first_name }} {{ $t->last_name }}
                                         </p>
-
-                                        <p class="text-xs text-gray-400">
-                                            Teacher ID: #{{ $t->id }}
-                                        </p>
                                     </div>
+
                                 </div>
                             </td>
 
@@ -133,7 +131,7 @@
                             <!-- Subject -->
                             <td class="px-6 py-4">
                                 @if($teacherSubject)
-                                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                                    <span class="inline-flex items-center justify-center px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold whitespace-nowrap">
                                         {{ $teacherSubject->name }}
                                     </span>
                                 @else

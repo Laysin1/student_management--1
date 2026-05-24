@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Models\Classes;
+use App\Models\SchoolClass;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -58,7 +58,11 @@ class ClassController extends Controller
             );
         }
 
-        return redirect()->route('teacher.classes.attend')->with('success', 'Attendance saved successfully');
+        return redirect()->route('teacher.classes.attendanceReport', [
+    'class_id' => $request->class_id,
+    'attendance_date' => $request->attendance_date,
+    'status' => ''
+])->with('success', 'Attendance saved successfully.');
     }
 
     public function saveScores(Request $request)
@@ -117,8 +121,13 @@ class ClassController extends Controller
             }
 
             $this->calculateAndSaveFinalScores();
+return redirect()->route('teacher.classes.scoresReport', [
+    'class_id' => $classId,
+    'report_type' => $reportType,
+    'semester' => $semester,
+    'month' => $month,
+])->with('success', "✅ Scores saved and final scores calculated! ($savedCount records)");
 
-            return redirect()->back()->with('success', "✅ Scores saved and final scores calculated! ($savedCount records)");
         } catch (\Exception $e) {
             file_put_contents(storage_path('logs/score-save.log'), "ERROR: " . $e->getMessage() . " " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
             return redirect()->back()->with('error', "❌ Error: " . $e->getMessage());
@@ -150,17 +159,22 @@ class ClassController extends Controller
     }
 
     public function show($id)
-    {
-        $teacher = Auth::user()->teacher;
+{
+    $teacher = Auth::user()->teacher;
 
-        if (!$teacher) {
-            return redirect()->route('teacher.classes.index');
-        }
-
-        $class = $teacher->classes()->with('students.user')->findOrFail($id);
-
-        return view('teacher.classes.show', compact('class'));
+    if (!$teacher) {
+        return redirect()->route('teacher.classes.index');
     }
+
+    $class = $teacher->classes()
+        ->with([
+            'students.user',
+            'students.class'
+        ])
+        ->findOrFail($id);
+
+    return view('teacher.classes.show', compact('class'));
+}
 
     public function create()
     {

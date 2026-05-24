@@ -72,7 +72,7 @@ class ParentController extends Controller
             $parent->students()->sync($validated['student_ids']);
         }
 
-        return redirect()->route('parents.index')->with('success', 'Parent created successfully');
+        return redirect()->route('admin.parents.index')->with('success', 'Parent created successfully');
     }
 
     public function edit(ParentUser $parent)

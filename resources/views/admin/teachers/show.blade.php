@@ -59,9 +59,9 @@
                     </p>
                 </div>
 
-                <span class="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                {{-- <span class="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
                     Teacher ID: #{{ $teacher->id }}
-                </span>
+                </span> --}}
             </div>
 
             <!-- Info Grid -->

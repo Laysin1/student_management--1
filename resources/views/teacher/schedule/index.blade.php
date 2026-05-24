@@ -15,12 +15,12 @@
                 $teacherId = auth()->user()->teacher->id;
 
                 // Show if it's assigned to the teacher directly
-                if ($schedule->teacher_id === $teacherId) {
+                if ((int) $schedule->teacher_id === (int) $teacherId) {
                     return true;
                 }
 
                 // OR show if it's for a class assigned to the teacher
-                if ($schedule->class && $schedule->class->teacher_id === $teacherId) {
+                if ($schedule->class && (int) $schedule->class->teacher_id === (int) $teacherId) {
                     return true;
                 }
 
@@ -30,17 +30,19 @@
 
         <!-- Schedule Images Grid -->
         @if($filteredSchedules && count($filteredSchedules) > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
                 @foreach($filteredSchedules as $schedule)
                     <div class="group">
                         <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
                             <!-- Image Container -->
-                            <div class="relative overflow-hidden bg-gray-100 h-80">
+                            <div class="relative bg-gray-100">
+
                                 @if(!empty($schedule->photo_path))
-                                    <a href="{{ asset('storage/'.$schedule->photo_path) }}" target="_blank" class="block w-full h-full">
-                                        <img src="{{ asset('storage/'.$schedule->photo_path) }}" alt="Schedule" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition duration-300"></div>
-                                    </a>
+
+                                    <img src="{{ asset('storage/'.$schedule->photo_path) }}"
+                                        alt="Schedule"
+                                        class="w-full h-auto object-contain">
+
                                 @else
                                     <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                                         <div class="text-center">

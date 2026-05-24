@@ -118,7 +118,7 @@
         </div>
 
         <!-- Schedule -->
-        <div class="border-t pt-8">
+        {{-- <div class="border-t pt-8">
 
             <h2 class="text-xl font-bold text-gray-900 mb-1">
                 Schedule Assignment
@@ -165,7 +165,7 @@
 
             </div>
 
-        </div>
+        </div> --}}
 
         <!-- Preview -->
         <div class="border-t pt-8">

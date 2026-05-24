@@ -15,7 +15,10 @@ class TeacherController extends Controller
 {
     public function index(\Illuminate\Http\Request $request)
 {
-    $q = \App\Models\Teacher::with(['user','classes','subject'])->orderBy('last_name');
+     $q = Teacher::with(['user','classes','subject'])
+        ->orderBy('first_name', 'asc')
+        ->orderBy('last_name', 'asc');
+
 
     if ($search = $request->get('search')) {
         $q->where(function ($w) use ($search) {
@@ -108,8 +111,9 @@ public function store(Request $request)
     {
         $teacher->load(['user', 'subject', 'classes']);
 
-        $classes = \App\Models\SchoolClass::all();
-        $subjects = \App\Models\Subject::all();
+        $classes = \App\Models\SchoolClass::orderBy('name', 'asc')->get();
+
+        $subjects = \App\Models\Subject::orderBy('name', 'asc')->get();
 
         return view('admin.teachers.edit', compact('teacher', 'classes', 'subjects'));
     }
@@ -157,7 +161,7 @@ public function store(Request $request)
             $teacher->classes()->sync($selectedClassIds);
 
             DB::commit();
-            return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully');
+            return redirect()->route('admin.teachers.index')->with('success', 'Teacher updated successfully');
         } catch (Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Failed to update teacher: ' . $e->getMessage()])->withInput();
@@ -175,7 +179,9 @@ public function store(Request $request)
     // AJAX filter endpoint for index page
 public function filter(\Illuminate\Http\Request $request)
 {
-    $q = \App\Models\Teacher::with(['user','classes','subject'])->orderBy('last_name');
+    $q = Teacher::with(['user','classes','subject'])
+        ->orderBy('first_name', 'asc')
+        ->orderBy('last_name', 'asc');
 
     if ($search = $request->get('search')) {
         $q->where(function ($w) use ($search) {
