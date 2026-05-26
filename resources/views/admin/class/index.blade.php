@@ -158,7 +158,7 @@
 
                             @if($firstId)
 
-                                <div class="grid grid-cols-3 gap-2">
+                                <div class="grid grid-cols-2 gap-2">
 
                                     <a href="{{ route('admin.students.index', ['class_id' => $firstId]) }}"
                                        class="text-center bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-sm font-semibold">
@@ -170,10 +170,10 @@
                                         Edit
                                     </a>
 
-                                    <a href="{{ route('admin.classes.delete-list') }}"
+                                    {{-- <a href="{{ route('admin.classes.delete-list') }}"
                                        class="text-center bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl text-sm font-semibold">
                                         Delete
-                                    </a>
+                                    </a> --}}
 
                                 </div>
 

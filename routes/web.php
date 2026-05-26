@@ -82,7 +82,8 @@ Route::middleware('auth')->group(function () {
         // Teachers
         Route::get('teachers/filter', [TeacherController::class, 'filter'])->name('teachers.filter');
         Route::resource('teachers', TeacherController::class);
-
+        Route::post('classes/{class}/move-students', [ClassController::class, 'moveStudents'])
+        ->name('classes.moveStudents');
         // Classes
         Route::get('classes/delete-list', [ClassController::class, 'deleteList'])->name('classes.delete-list');
         Route::resource('classes', ClassController::class);
