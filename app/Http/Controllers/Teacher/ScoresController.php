@@ -3,25 +3,26 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Models\Grade;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ScoresController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        $classes = $user->teacher->classes ?? [];
-        $selectedClassStudents = [];
+        $teacher = $user->teacher;
+
+        $classes = $teacher ? $teacher->classes : collect();
+        $selectedClassStudents = collect();
 
         if (request('class_id')) {
             $classModel = $classes->firstWhere('id', request('class_id'));
 
             if ($classModel) {
-                $selectedClassStudents = $classModel->students ?? [];
+                $selectedClassStudents = $classModel->students ?? collect();
             }
         }
 
@@ -34,66 +35,92 @@ class ScoresController extends Controller
     public function saveScores(Request $request)
     {
         try {
-            $month = $request->input('month');
-            $reportType = $request->input('report_type', 'monthly');
-            $semester = $request->input('semester');
+            $user = Auth::user();
+            $teacher = $user->teacher;
 
-            $scoreField = 'final_score';
-
-            if ($reportType == 'semester' && $semester == '1') {
-                $scoreField = 'first_semester';
-            } elseif ($reportType == 'semester' && $semester == '2') {
-                $scoreField = 'second_semester';
+            if (!$teacher) {
+                return redirect()->back()
+                    ->with('error', 'Teacher profile not found.');
             }
 
+            $month = (int) $request->input('month');
+
+            $scoreField = 'final_score';
             $scores = $request->input($scoreField, []);
+
             $savedCount = 0;
 
             foreach ($scores as $studentId => $score) {
-                if ($score !== null && $score !== '' && (float) $score > 0) {
 
-                    $date = $month
-                        ? Carbon::createFromDate(2026, (int) $month, 1)
-                        : Carbon::createFromDate(2026, 1, 1);
-
-                    $student = Student::with('class')->find($studentId);
-
-                    if ($student) {
-                        $gradeLevelRaw = $student->class->grade_level ?? null;
-
-                        preg_match('/\d+/', (string) $gradeLevelRaw, $matches);
-
-                        $gradeLevel = isset($matches[0]) ? (int) $matches[0] : null;
-
-                        Grade::updateOrCreate(
-                            [
-                                'student_id' => $student->id,
-                                'date' => $date,
-                            ],
-                            [
-                                'subject_id' => 1,
-                                'score' => (float) $score,
-                                'total_score' => 100,
-                                'grade' => $this->calculateGrade($score),
-                                'grade_status' => $this->getGradeStatus($score),
-                                'grade_level' => $gradeLevel,
-                            ]
-                        );
-
-                        $savedCount++;
-                    }
+                if ($score === null || $score === '' || (float)$score < 0) {
+                    continue;
                 }
+
+                $student = Student::with('class')->find($studentId);
+
+                if (!$student || !$student->class) {
+                    continue;
+                }
+
+                $gradeLevelRaw = $student->class->grade_level ?? null;
+
+                preg_match('/\d+/', (string)$gradeLevelRaw, $matches);
+
+                $gradeLevel = isset($matches[0])
+                    ? (int)$matches[0]
+                    : null;
+
+                // Check if this exact teacher already scored this month
+                $existing = DB::table('scores')
+                    ->where('student_id', $student->id)
+                    ->where('teacher_id', $teacher->id)
+                    ->where('class_id', $student->class->id)
+                    ->where('month', $month)
+                    ->first();
+
+                if ($existing) {
+
+                    DB::table('scores')
+                        ->where('id', $existing->id)
+                        ->update([
+                            'final_score' => (float)$score,
+                            'grade_level' => $gradeLevel,
+                            'grade' => $this->calculateGrade($score),
+                            'updated_at' => now(),
+                        ]);
+
+                } else {
+
+                    DB::table('scores')->insert([
+                        'student_id' => $student->id,
+                        'teacher_id' => $teacher->id,
+                        'class_id' => $student->class->id,
+                        'grade_level' => $gradeLevel,
+                        'month' => $month,
+                        'final_score' => (float)$score,
+                        'grade' => $this->calculateGrade($score),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                }
+
+                $savedCount++;
             }
 
-            return redirect()->back()->with('success', "✅ Scores saved! ($savedCount records)");
+            return redirect()->back()
+                ->with('success', "✅ Scores saved! ($savedCount records)");
+
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', "❌ Error: " . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', "❌ Error: " . $e->getMessage());
         }
     }
 
     private function calculateGrade($score)
     {
-        $score = (float) $score;
+        $score = (float)$score;
 
         if ($score >= 90) return 'A';
         if ($score >= 80) return 'B';
@@ -105,7 +132,7 @@ class ScoresController extends Controller
 
     private function getGradeStatus($score)
     {
-        $score = (float) $score;
+        $score = (float)$score;
 
         if ($score >= 90) return 'Excellent';
         if ($score >= 80) return 'Very Good';

@@ -6,14 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
-    protected $fillable = ['name','code'];
+    protected $table = 'subjects';
+
+    protected $fillable = [
+        'name',
+        'code',
+    ];
 
     public function teachers()
     {
-        return $this->hasMany(\App\Models\Teacher::class);
+        return $this->hasMany(Teacher::class, 'subject_id', 'id');
     }
+
     public function scores()
-{
-    return $this->hasMany(\App\Models\Score::class);
-}
+    {
+        return $this->hasMany(Score::class, 'subject_id', 'id');
+    }
 }

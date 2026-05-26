@@ -41,7 +41,7 @@
                     </div>
 
                     <h2 class="text-xl font-bold text-gray-900">
-                        {{ auth()->user()->name }}
+                        {{ $student->first_name }} {{ $student->last_name }}
                     </h2>
 
                     <p class="text-gray-500 text-sm mt-1">
@@ -107,7 +107,7 @@
 
                                 <input
                                     type="text"
-                                    value="{{ auth()->user()->name }}"
+                                    value="{{ $student->first_name }} {{ $student->last_name }}"
                                     class="w-full rounded-xl border-gray-300 bg-gray-100 px-4 py-3 text-gray-500 cursor-not-allowed"
                                     readonly
                                 >

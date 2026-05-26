@@ -5,10 +5,9 @@
 
     <div class="mb-6">
         <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Score Management</h1>
-        <p class="text-gray-600 mt-1">Enter and manage student scores by class and period.</p>
+        <p class="text-gray-600 mt-1">Enter monthly scores and semester exam scores.</p>
     </div>
 
-    <!-- Tabs -->
     <div class="bg-white rounded-xl shadow border border-gray-100 p-2 mb-6">
         <div class="flex flex-col md:flex-row gap-2">
             <a href="{{ route('teacher.classes.index') }}"
@@ -28,7 +27,6 @@
         </div>
     </div>
 
-    <!-- Filter -->
     <form method="GET" id="filterForm" action="{{ route('teacher.classes.scores') }}"
           class="bg-white rounded-xl shadow border border-gray-100 p-6 mb-6">
 
@@ -43,7 +41,7 @@
 
                     @foreach($classes as $class)
                         <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                            Grade {{ $class->grade_level }} - {{ $class->name }}
+                            {{ $class->grade_level }} - {{ $class->name }}
                         </option>
                     @endforeach
                 </select>
@@ -56,8 +54,12 @@
                         class="border border-gray-300 rounded-lg px-4 py-2.5 w-full"
                         onchange="handleTypeChange()">
                     <option value="">Choose Type</option>
-                    <option value="monthly" {{ request('report_type') == 'monthly' ? 'selected' : '' }}>Monthly</option>
-                    <option value="semester" {{ request('report_type') == 'semester' ? 'selected' : '' }}>Semester / Final</option>
+                    <option value="monthly" {{ request('report_type') == 'monthly' ? 'selected' : '' }}>
+                        Monthly Score
+                    </option>
+                    <option value="semester" {{ request('report_type') == 'semester' ? 'selected' : '' }}>
+                        Semester Exam
+                    </option>
                 </select>
             </div>
 
@@ -68,23 +70,39 @@
                         onchange="document.getElementById('filterForm').submit()">
                     <option value="">Choose Month</option>
 
-                    @foreach(range(1, 12) as $month)
-                        <option value="{{ $month }}" {{ request('month') == $month ? 'selected' : '' }}>
-                            {{ date('F', mktime(0, 0, 0, $month, 1)) }}
+                    @php
+                        $months = [
+                            12 => 'December',
+                            1 => 'January',
+                            2 => 'February',
+                            3 => 'March',
+                            4 => 'April',
+                            5 => 'May',
+                            6 => 'June',
+                            7 => 'July',
+                            8 => 'August',
+                            9 => 'September',
+                            10 => 'October',
+                            11 => 'November',
+                        ];
+                    @endphp
+
+                    @foreach($months as $number => $name)
+                        <option value="{{ $number }}" {{ request('month') == $number ? 'selected' : '' }}>
+                            {{ $name }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
             <div id="semesterDiv" class="hidden">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Semester</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Exam</label>
                 <select name="semester"
                         class="border border-gray-300 rounded-lg px-4 py-2.5 w-full"
                         onchange="document.getElementById('filterForm').submit()">
-                    <option value="">Choose Semester</option>
+                    <option value="">Choose Exam</option>
                     <option value="1" {{ request('semester') == '1' ? 'selected' : '' }}>1st Semester</option>
                     <option value="2" {{ request('semester') == '2' ? 'selected' : '' }}>2nd Semester</option>
-                    <option value="final" {{ request('semester') == 'final' ? 'selected' : '' }}>Final</option>
                 </select>
             </div>
 
@@ -109,8 +127,13 @@
 
             <div class="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900">Enter Scores</h2>
-                    <p class="text-gray-600 text-sm mt-1">Fill scores from 0 to 100 for each student.</p>
+                    <h2 class="text-lg font-bold text-gray-900">
+                        {{ request('report_type') == 'semester' ? 'Enter Semester Exam Scores' : 'Enter Monthly Scores' }}
+                    </h2>
+
+                    <p class="text-gray-600 text-sm mt-1">
+                        Fill score from 0 to 100 for each student.
+                    </p>
                 </div>
 
                 <input type="text"
@@ -126,7 +149,6 @@
                 <input type="hidden" name="month" value="{{ request('month') ?? '' }}">
                 <input type="hidden" name="report_type" value="{{ request('report_type') }}">
                 <input type="hidden" name="semester" value="{{ request('semester') ?? '' }}">
-                <input type="hidden" name="subject_id" value="1">
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
@@ -137,7 +159,9 @@
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Student ID</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Email</th>
                                 <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">Gender</th>
-                                <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">Score</th>
+                                <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase">
+                                    {{ request('report_type') == 'semester' ? 'Exam Score' : 'Monthly Score' }}
+                                </th>
                             </tr>
                         </thead>
 
@@ -167,24 +191,30 @@
                                         @if(request('report_type') == 'semester' && request('semester') == '1')
                                             <input type="number"
                                                    name="first_semester[{{ $student->id }}]"
-                                                   value="0"
+                                                   value=""
+                                                   placeholder="0"
                                                    min="0"
                                                    max="100"
-                                                   class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center font-semibold">
+                                                   step="0.01"
+                                                   class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-center font-semibold">
                                         @elseif(request('report_type') == 'semester' && request('semester') == '2')
                                             <input type="number"
                                                    name="second_semester[{{ $student->id }}]"
-                                                   value="0"
+                                                   value=""
+                                                   placeholder="0"
                                                    min="0"
                                                    max="100"
-                                                   class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center font-semibold">
+                                                   step="0.01"
+                                                   class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-center font-semibold">
                                         @else
                                             <input type="number"
                                                    name="final_score[{{ $student->id }}]"
-                                                   value="0"
+                                                   value=""
+                                                   placeholder="0"
                                                    min="0"
                                                    max="100"
-                                                   class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center font-semibold">
+                                                   step="0.01"
+                                                   class="w-28 border border-gray-300 rounded-lg px-3 py-2 text-center font-semibold">
                                         @endif
                                     </td>
 

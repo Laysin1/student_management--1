@@ -118,6 +118,7 @@
 
                 <input type="hidden"
                        name="attendance_date"
+                       onchange="submitFilter()"
                        id="attendanceDateInput"
                        value="{{ request('date', date('Y-m-d')) }}">
 

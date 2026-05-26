@@ -3,58 +3,59 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Subject;
 
 class SettingController extends Controller
 {
     public function index()
-    {
-        $user = Auth::user();
-        $teacher = $user->teacher;
-        return view('teacher.setting.index', compact('user', 'teacher'));
-    }
+{
+    $user = Auth::user();
 
-    public function create()
-    {
-        return view('teacher.setting.create');
-    }
+    $teacher = Teacher::with(['classes'])
+        ->where('user_id', $user->id)
+        ->firstOrFail();
 
-    public function store(Request $request)
-    {
-        return redirect()->route('teacher.setting.index');
-    }
+    $teacherSubject = Subject::find($teacher->subject_id);
 
-    public function show($id)
-    {
-        return view('teacher.setting.show');
-    }
+    return view('teacher.setting.index', compact('user', 'teacher', 'teacherSubject'));
+}
 
-    public function edit($id)
+    public function update(Request $request)
     {
-        return view('teacher.setting.edit');
-    }
-
-    public function update(Request $request, $id)
-    {
+        /** @var User $user */
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+        $teacher = Teacher::where('user_id', $user->id)
+            ->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => 'nullable|string|max:30',
+            'gender' => 'nullable|string|in:Male,Female,Other',
+            'password' => 'nullable|min:8',
         ]);
 
+        // Update user
+        $user->name = $request->name;
+
         if ($request->filled('password')) {
-            $validated['password'] = bcrypt($request->password);
+            $user->password = Hash::make($request->password);
         }
 
-        $user->update($validated);
+        $user->save();
 
-        return redirect()->route('teacher.setting.index')->with('success', 'Settings updated successfully');
-    }
+        // Update teacher
+        $teacher->phone_number = $request->phone_number;
+        $teacher->gender = $request->gender;
+        $teacher->save();
 
-    public function destroy($id)
-    {
-        return redirect()->route('teacher.setting.index');
+        return redirect()
+            ->route('teacher.setting.index')
+            ->with('success', 'Settings updated successfully');
     }
 }

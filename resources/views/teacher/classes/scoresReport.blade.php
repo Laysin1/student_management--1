@@ -213,7 +213,7 @@
 
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-gray-900">
-                                        {{ $record->student->user->name ?? 'N/A' }}
+                                        {{ trim(($record->student->first_name ?? '') . ' ' . ($record->student->last_name ?? '')) ?: ($record->student->user->name ?? 'N/A') }}
                                     </div>
                                 </td>
 

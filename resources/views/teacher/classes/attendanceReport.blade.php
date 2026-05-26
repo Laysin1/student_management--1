@@ -9,7 +9,7 @@
                 Daily Attendance Report
             </h1>
             <p class="text-gray-600 mt-1">
-                View attendance records by class, date, or status.
+                View your attendance records by class, date, status, or student.
             </p>
         </div>
 
@@ -20,12 +20,16 @@
     </div>
 
     <div class="bg-white rounded-xl shadow border border-gray-100 p-5 mb-6">
-        <form method="GET" action="{{ route('teacher.classes.attendanceReport') }}">
+        <form method="GET"
+      action="{{ route('teacher.classes.attendanceReport') }}"
+      id="filterForm">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Class</label>
-                    <select name="class_id" class="border border-gray-300 rounded-lg px-4 py-2.5 w-full">
+                    <select name="class_id"
+        onchange="submitFilter()"
+        class="border border-gray-300 rounded-lg px-4 py-2.5 w-full">
                         <option value="">Choose class</option>
                         @foreach($classes as $class)
                             <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
@@ -45,7 +49,7 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                    <select name="status" class="border border-gray-300 rounded-lg px-4 py-2.5 w-full">
+                    <select name="status" onchange="submitFilter()" class="border border-gray-300 rounded-lg px-4 py-2.5 w-full">
                         <option value="">All Status</option>
                         <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}>Present</option>
                         <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>Absent</option>
@@ -56,7 +60,9 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Search Student</label>
                     <input type="text"
-                           id="studentSearch"
+                           name="search"
+                           id="searchInput"
+                           value="{{ request('search') }}"
                            placeholder="Search name or ID..."
                            class="border border-gray-300 rounded-lg px-4 py-2.5 w-full">
                 </div>
@@ -64,10 +70,10 @@
             </div>
 
             <div class="flex flex-col md:flex-row gap-3 mt-5">
-                <button type="submit"
+                {{-- <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg">
                     Apply Filter
-                </button>
+                </button> --}}
 
                 <a href="{{ route('teacher.classes.attendanceReport') }}"
                    class="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-6 py-2.5 rounded-lg text-center">
@@ -81,11 +87,20 @@
 
         <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
 
-            <div class="p-5 border-b border-gray-100">
-                <h2 class="text-lg font-bold text-gray-900">Attendance Records</h2>
-                <p class="text-gray-600 text-sm mt-1">
-                    Results based on your selected filters.
-                </p>
+            <div class="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Attendance Records</h2>
+                    <p class="text-gray-600 text-sm mt-1">
+                        Only your attendance records are shown.
+                    </p>
+                </div>
+
+                <div class="text-sm text-gray-600">
+                    Total:
+                    <span class="font-bold text-gray-900">
+                        {{ method_exists($attendanceRecords, 'total') ? $attendanceRecords->total() : $attendanceRecords->count() }}
+                    </span>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -102,7 +117,7 @@
 
                     <tbody class="divide-y divide-gray-100">
                         @forelse($attendanceRecords as $record)
-                            <tr class="hover:bg-gray-50 attendance-row">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 font-semibold text-gray-900">
                                     {{ $record->student->first_name ?? '' }} {{ $record->student->last_name ?? '' }}
                                 </td>
@@ -112,7 +127,7 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-700">
-                                    {{ $record->attendance_date->format('d M Y') }}
+                                    {{ \Carbon\Carbon::parse($record->attendance_date)->format('d M Y') }}
                                 </td>
 
                                 <td class="px-6 py-4">
@@ -141,9 +156,11 @@
 
         </div>
 
-        <div class="mt-6">
-            {{ $attendanceRecords->appends(request()->query())->links() }}
-        </div>
+        @if(method_exists($attendanceRecords, 'links'))
+            <div class="mt-6">
+                {{ $attendanceRecords->appends(request()->query())->links() }}
+            </div>
+        @endif
 
     @else
 
@@ -157,17 +174,19 @@
     @endif
 
 </div>
-
-<script>
-    const studentSearch = document.getElementById('studentSearch');
-
-    studentSearch?.addEventListener('keyup', function () {
-        const value = this.value.toLowerCase();
-
-        document.querySelectorAll('.attendance-row').forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(value) ? '' : 'none';
-        });
-    });
-</script>
 @endsection
+<script>
+function submitFilter() {
+    document.getElementById('filterForm').submit();
+}
+
+let timer;
+
+document.getElementById('searchInput')?.addEventListener('keyup', function() {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+        submitFilter();
+    }, 500);
+});
+</script>

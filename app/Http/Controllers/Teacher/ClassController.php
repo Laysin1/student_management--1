@@ -7,7 +7,6 @@ use App\Models\SchoolClass;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class ClassController extends Controller
 {
@@ -40,16 +39,24 @@ class ClassController extends Controller
 
     public function saveAttend(Request $request)
     {
+        $teacher = Auth::user()->teacher;
+
         $validated = $request->validate([
             'class_id' => 'required|exists:school_classes,id',
             'attendance_date' => 'required|date',
+            'schedule_id' => 'nullable|exists:schedules,id',
             'attendance' => 'array',
             'remarks' => 'array',
         ]);
 
         foreach ($validated['attendance'] as $studentId => $status) {
             \App\Models\Attendance::updateOrCreate(
-                ['student_id' => $studentId, 'attendance_date' => $validated['attendance_date']],
+                [
+                    'student_id' => $studentId,
+                    'teacher_id' => $teacher->id,
+                    'schedule_id' => $validated['schedule_id'] ?? null,
+                    'attendance_date' => $validated['attendance_date'],
+                ],
                 [
                     'class_id' => $validated['class_id'],
                     'status' => $status,
@@ -59,18 +66,15 @@ class ClassController extends Controller
         }
 
         return redirect()->route('teacher.classes.attendanceReport', [
-    'class_id' => $request->class_id,
-    'attendance_date' => $request->attendance_date,
-    'status' => ''
-])->with('success', 'Attendance saved successfully.');
+            'class_id' => $validated['class_id'],
+            'attendance_date' => $validated['attendance_date'],
+            'status' => '',
+        ])->with('success', 'Attendance saved successfully.');
     }
 
     public function saveScores(Request $request)
     {
         try {
-            file_put_contents(storage_path('logs/score-save.log'), "\n=== SAVE SCORES CALLED ===\n" . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
-            file_put_contents(storage_path('logs/score-save.log'), "Request data: " . json_encode($request->all()) . "\n", FILE_APPEND);
-
             $classId = $request->input('class_id');
             $month = $request->input('month');
             $reportType = $request->input('report_type', 'monthly');
@@ -88,6 +92,7 @@ class ClassController extends Controller
 
             $scores = $request->input($scoreField, []);
             $savedCount = 0;
+            $teacherId = Auth::user()->teacher->id ?? null;
 
             foreach ($scores as $studentId => $score) {
                 if ($score !== null && $score !== '' && (float) $score > 0) {
@@ -98,22 +103,37 @@ class ClassController extends Controller
                         preg_match('/\d+/', (string) $gradeLevelRaw, $matches);
                         $gradeLevel = isset($matches[0]) ? (int) $matches[0] : null;
 
-                        DB::table('scores')->updateOrInsert(
-                            [
+                        $existing = DB::table('scores')
+                            ->where('student_id', $student->id)
+                            ->where('teacher_id', $teacherId)
+                            ->where('class_id', $classId)
+                            ->where('month', $month)
+                            ->first();
+
+                        if ($existing) {
+                            DB::table('scores')
+                                ->where('id', $existing->id)
+                                ->update([
+                                    $scoreField => (float) $score,
+                                    'grade' => $this->calculateGrade($score),
+                                    'year' => 2026,
+                                    'grade_level' => $gradeLevel,
+                                    'updated_at' => now(),
+                                ]);
+                        } else {
+                            DB::table('scores')->insert([
                                 'student_id' => $student->id,
+                                'teacher_id' => $teacherId,
                                 'class_id' => $classId,
                                 'month' => $month,
-                            ],
-                            [
                                 $scoreField => (float) $score,
                                 'grade' => $this->calculateGrade($score),
                                 'year' => 2026,
-                                'teacher_id' => Auth::user()->teacher->id ?? null,
                                 'grade_level' => $gradeLevel,
                                 'created_at' => now(),
                                 'updated_at' => now(),
-                            ]
-                        );
+                            ]);
+                        }
 
                         $savedCount++;
                     }
@@ -121,15 +141,15 @@ class ClassController extends Controller
             }
 
             $this->calculateAndSaveFinalScores();
-return redirect()->route('teacher.classes.scoresReport', [
-    'class_id' => $classId,
-    'report_type' => $reportType,
-    'semester' => $semester,
-    'month' => $month,
-])->with('success', "✅ Scores saved and final scores calculated! ($savedCount records)");
+
+            return redirect()->route('teacher.classes.scoresReport', [
+                'class_id' => $classId,
+                'report_type' => $reportType,
+                'semester' => $semester,
+                'month' => $month,
+            ])->with('success', "✅ Scores saved and final scores calculated! ($savedCount records)");
 
         } catch (\Exception $e) {
-            file_put_contents(storage_path('logs/score-save.log'), "ERROR: " . $e->getMessage() . " " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
             return redirect()->back()->with('error', "❌ Error: " . $e->getMessage());
         }
     }
@@ -159,22 +179,19 @@ return redirect()->route('teacher.classes.scoresReport', [
     }
 
     public function show($id)
-{
-    $teacher = Auth::user()->teacher;
+    {
+        $teacher = Auth::user()->teacher;
 
-    if (!$teacher) {
-        return redirect()->route('teacher.classes.index');
+        if (!$teacher) {
+            return redirect()->route('teacher.classes.index');
+        }
+
+        $class = $teacher->classes()
+            ->with(['students.user', 'students.class'])
+            ->findOrFail($id);
+
+        return view('teacher.classes.show', compact('class'));
     }
-
-    $class = $teacher->classes()
-        ->with([
-            'students.user',
-            'students.class'
-        ])
-        ->findOrFail($id);
-
-    return view('teacher.classes.show', compact('class'));
-}
 
     public function create()
     {
@@ -205,29 +222,40 @@ return redirect()->route('teacher.classes.scoresReport', [
     }
 
     public function attendanceReport()
-    {
-        $teacher = Auth::user()->teacher;
-        $classes = $teacher ? $teacher->classes()->get() : collect();
-        $attendanceRecords = collect();
+{
+    $teacher = Auth::user()->teacher;
+    $classes = $teacher ? $teacher->classes()->get() : collect();
+    $attendanceRecords = collect();
 
-        if (request('class_id')) {
-            $query = \App\Models\Attendance::where('class_id', request('class_id'))
-                ->with(['student.user'])
-                ->orderBy('attendance_date', 'desc');
+    if (request('class_id')) {
+        $query = \App\Models\Attendance::where('class_id', request('class_id'))
+            ->where('teacher_id', $teacher->id)
+            ->with(['student.user', 'teacher.subject', 'schedule'])
+            ->orderBy('attendance_date', 'desc');
 
-            if (request('attendance_date')) {
-                $query->whereDate('attendance_date', request('attendance_date'));
-            }
-
-            if (request('status')) {
-                $query->where('status', request('status'));
-            }
-
-            $attendanceRecords = $query->paginate(50);
+        if (request('attendance_date')) {
+            $query->whereDate('attendance_date', request('attendance_date'));
         }
 
-        return view('teacher.classes.attendanceReport', compact('classes', 'attendanceRecords'));
+        if (request('status')) {
+            $query->where('status', request('status'));
+        }
+
+        if (request('search')) {
+            $search = request('search');
+
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('student_id', 'like', "%{$search}%");
+            });
+        }
+
+        $attendanceRecords = $query->paginate(20);
     }
+
+    return view('teacher.classes.attendanceReport', compact('classes', 'attendanceRecords'));
+}
 
     public function scoresReport()
     {
@@ -236,7 +264,10 @@ return redirect()->route('teacher.classes.scoresReport', [
         $scoreRecords = collect();
 
         if (request('class_id')) {
+            $teacherId = $teacher->id;
+
             $query = \App\Models\Score::where('class_id', request('class_id'))
+                ->where('teacher_id', $teacherId)
                 ->with(['student.user']);
 
             if (request('report_type') == 'semester') {
@@ -275,101 +306,124 @@ return redirect()->route('teacher.classes.scoresReport', [
         return view('teacher.classes.scores', compact('classes', 'selectedClassStudents'));
     }
 
+    private function calculateMonthlyAverage($studentId, $year, $gradeLevel, $month)
+    {
+        return DB::table('scores')
+            ->where('student_id', $studentId)
+            ->where('year', $year)
+            ->where('grade_level', $gradeLevel)
+            ->where('month', $month)
+            ->whereNotNull('final_score')
+            ->avg('final_score');
+    }
+
+    private function calculateAverageOfMonthlyAverages($studentId, $year, $gradeLevel, array $months)
+    {
+        $monthlyAverages = [];
+
+        foreach ($months as $month) {
+            $monthlyAverage = $this->calculateMonthlyAverage($studentId, $year, $gradeLevel, $month);
+
+            if ($monthlyAverage !== null) {
+                $monthlyAverages[] = (float) $monthlyAverage;
+            }
+        }
+
+        if (count($monthlyAverages) === 0) {
+            return null;
+        }
+
+        return array_sum($monthlyAverages) / count($monthlyAverages);
+    }
+
     private function calculateAndSaveFinalScores()
     {
         try {
-            file_put_contents(storage_path('logs/score-save.log'), "  Starting final score calculations...\n", FILE_APPEND);
-
             $year = 2026;
             $students = \App\Models\Student::with('class')->get();
-            $updatedCount = 0;
 
             foreach ($students as $student) {
                 $gradeLevelRaw = $student->class->grade_level ?? null;
                 preg_match('/\d+/', (string) $gradeLevelRaw, $matches);
                 $gradeLevel = isset($matches[0]) ? (int) $matches[0] : null;
 
-                $firstSemesterMonths = [12, 1, 2, 3];
-
-                $firstSemesterMonthlyScores = DB::table('scores')
-                    ->where('student_id', $student->id)
-                    ->where('year', $year)
-                    ->where('grade_level', $gradeLevel)
-                    ->whereIn('month', $firstSemesterMonths)
-                    ->whereNotNull('month')
-                    ->pluck('final_score')
-                    ->filter(fn($score) => $score > 0)
-                    ->toArray();
-
-                $firstSemesterScore = DB::table('scores')
-                    ->where('student_id', $student->id)
-                    ->where('year', $year)
-                    ->where('grade_level', $gradeLevel)
-                    ->where(function ($q) {
-                        $q->whereNull('month')->orWhere('month', 0);
-                    })
-                    ->value('first_semester');
-
-                $firstSemesterFinal = null;
-
-                if (!empty($firstSemesterMonthlyScores) && $firstSemesterScore > 0) {
-                    $avgMonthly = array_sum($firstSemesterMonthlyScores) / count($firstSemesterMonthlyScores);
-                    $firstSemesterFinal = ($avgMonthly + $firstSemesterScore) / 2;
+                if (!$gradeLevel) {
+                    continue;
                 }
 
-                $secondSemesterMonths = [4, 5, 6, 7];
+                // Semester 1 monthly average: Dec → Mar
+                $semester1MonthlyAverage = $this->calculateAverageOfMonthlyAverages(
+                    $student->id,
+                    $year,
+                    $gradeLevel,
+                    [12, 1, 2, 3]
+                );
 
-                $secondSemesterMonthlyScores = DB::table('scores')
+                // Semester 1 exam average: average of all subjects in S1
+                $semester1ExamAverage = DB::table('scores')
                     ->where('student_id', $student->id)
                     ->where('year', $year)
                     ->where('grade_level', $gradeLevel)
-                    ->whereIn('month', $secondSemesterMonths)
-                    ->whereNotNull('month')
-                    ->pluck('final_score')
-                    ->filter(fn($score) => $score > 0)
-                    ->toArray();
+                    ->whereNotNull('first_semester')
+                    ->avg('first_semester');
 
-                $secondSemesterScore = DB::table('scores')
+                // Semester 2 monthly average: May → Jul
+                $semester2MonthlyAverage = $this->calculateAverageOfMonthlyAverages(
+                    $student->id,
+                    $year,
+                    $gradeLevel,
+                    [5, 6, 7]
+                );
+
+                // Semester 2 exam average: average of all subjects in S2
+                $semester2ExamAverage = DB::table('scores')
                     ->where('student_id', $student->id)
                     ->where('year', $year)
                     ->where('grade_level', $gradeLevel)
-                    ->where(function ($q) {
-                        $q->whereNull('month')->orWhere('month', 0);
-                    })
-                    ->value('second_semester');
+                    ->whereNotNull('second_semester')
+                    ->avg('second_semester');
 
-                $secondSemesterFinal = null;
+                $finalSemester1 = null;
+                $finalSemester2 = null;
+                $finalScore = null;
 
-                if (!empty($secondSemesterMonthlyScores) && $secondSemesterScore > 0) {
-                    $avgMonthly = array_sum($secondSemesterMonthlyScores) / count($secondSemesterMonthlyScores);
-                    $secondSemesterFinal = ($avgMonthly + $secondSemesterScore) / 2;
+                if ($semester1MonthlyAverage !== null && $semester1ExamAverage !== null) {
+                    $finalSemester1 = ($semester1MonthlyAverage + $semester1ExamAverage) / 2;
                 }
 
-                if ($firstSemesterFinal !== null && $secondSemesterFinal !== null) {
-                    $finalScore = ($firstSemesterFinal + $secondSemesterFinal) / 2;
-
-                    DB::table('scores')->updateOrInsert(
-                        [
-                            'student_id' => $student->id,
-                            'year' => $year,
-                            'month' => null,
-                            'grade_level' => $gradeLevel,
-                        ],
-                        [
-                            'final_score' => round($finalScore, 2),
-                            'grade' => $this->calculateGrade($finalScore),
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]
-                    );
-
-                    $updatedCount++;
+                if ($semester2MonthlyAverage !== null && $semester2ExamAverage !== null) {
+                    $finalSemester2 = ($semester2MonthlyAverage + $semester2ExamAverage) / 2;
                 }
+
+                if ($finalSemester1 !== null && $finalSemester2 !== null) {
+                    $finalScore = ($finalSemester1 + $finalSemester2) / 2;
+                }
+
+                DB::table('scores')->updateOrInsert(
+                    [
+                        'student_id' => $student->id,
+                        'year' => $year,
+                        'grade_level' => $gradeLevel,
+                        'month' => null,
+                        'teacher_id' => null,
+                    ],
+                    [
+                        'class_id' => $student->class->id ?? null,
+                        'first_semester_final' => $finalSemester1 !== null ? round($finalSemester1, 2) : null,
+                        'second_semester_final' => $finalSemester2 !== null ? round($finalSemester2, 2) : null,
+                        'final_score' => $finalScore !== null ? round($finalScore, 2) : null,
+                        'grade' => $finalScore !== null ? $this->calculateGrade($finalScore) : null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
             }
-
-            file_put_contents(storage_path('logs/score-save.log'), "  Final scores updated: $updatedCount students\n", FILE_APPEND);
         } catch (\Exception $e) {
-            file_put_contents(storage_path('logs/score-save.log'), "  ERROR in calculateAndSaveFinalScores: " . $e->getMessage() . "\n", FILE_APPEND);
+            file_put_contents(
+                storage_path('logs/score-save.log'),
+                "ERROR in calculateAndSaveFinalScores: " . $e->getMessage() . "\n",
+                FILE_APPEND
+            );
         }
     }
 }
