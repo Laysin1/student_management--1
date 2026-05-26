@@ -35,7 +35,15 @@ class SchoolClass extends Model
             'teacher_id'
         );
     }
-
+public function teacher()
+{
+    return $this->belongsToMany(
+        \App\Models\Teacher::class,
+        'class_teacher',
+        'class_id',
+        'teacher_id'
+    );
+}
     /**
      * Class schedules
      */

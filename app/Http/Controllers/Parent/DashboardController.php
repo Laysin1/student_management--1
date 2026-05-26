@@ -10,38 +10,40 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     public function dashboard()
-    {
-        $parent = DB::table('parent_users')
-            ->where('user_id', Auth::id())
-            ->first();
+{
+    $parent = DB::table('parent_users')
+        ->where('user_id', Auth::id())
+        ->first();
 
-        abort_if(!$parent, 403, 'Parent profile not found');
+    abort_if(!$parent, 403, 'Parent profile not found');
 
-        $students = DB::table('parent_student')
-            ->where('parent_student.parent_user_id', $parent->id)
-            ->join('students', 'parent_student.student_id', '=', 'students.id')
-            ->select('students.*') // students.id is included here
-            ->get();
+    $studentIds = DB::table('parent_student')
+        ->where('parent_user_id', $parent->id)
+        ->pluck('student_id');
 
-        return view('parent.dashboard.index', compact('parent', 'students'));
-    }
+    $students = Student::whereIn('id', $studentIds)
+        ->get();
+
+    return view('parent.dashboard.index', compact('parent', 'students'));
+}
 
     public function classes()
-    {
-        $parent = DB::table('parent_users')
-            ->where('user_id', Auth::id())
-            ->first();
+{
+    $parent = DB::table('parent_users')
+        ->where('user_id', Auth::id())
+        ->first();
 
-        abort_if(!$parent, 403, 'Parent profile not found');
+    abort_if(!$parent, 403, 'Parent profile not found');
 
-        $students = DB::table('parent_student')
-            ->where('parent_student.parent_user_id', $parent->id)
-            ->join('students', 'parent_student.student_id', '=', 'students.id')
-            ->select('students.*')
-            ->get();
+    $studentIds = DB::table('parent_student')
+        ->where('parent_user_id', $parent->id)
+        ->pluck('student_id');
 
-        return view('parent.classes.index', compact('students'));
-    }
+    $students = Student::whereIn('id', $studentIds)
+        ->get();
+
+    return view('parent.classes.index', compact('students'));
+}
 
     public function grades($studentId)
     {

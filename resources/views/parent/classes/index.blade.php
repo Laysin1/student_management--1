@@ -146,7 +146,13 @@
                                 <span class="text-gray-500 text-sm">Age</span>
 
                                 <span class="font-semibold text-gray-800">
-                                    {{ $student->age ?? 'N/A' }}
+                                    @if(!empty($student->date_of_birth))
+    {{ \Carbon\Carbon::parse($student->date_of_birth)->age }}
+@elseif(!empty($student->dob))
+    {{ \Carbon\Carbon::parse($student->dob)->age }}
+@else
+    N/A
+@endif
                                 </span>
                             </div>
 
